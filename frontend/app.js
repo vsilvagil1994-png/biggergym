@@ -2,7 +2,7 @@ if (localStorage.getItem('logeado') !== 'true') {
   window.location.href = 'login.html';
 }
 
-const API = 'http://localhost:3000';
+const API = '';
 
 let clientesCache = [];
 let clienteEditar = null;
