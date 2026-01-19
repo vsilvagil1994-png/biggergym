@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Bigger Gym</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="card">
+  <h2>🔐 Bigger Gym</h2>
+
+  <input type="text" id="usuario" placeholder="Usuario">
+  <input type="password" id="password" placeholder="Contraseña">
+
+  <button onclick="login()">Ingresar</button>
+
+  <p id="errorLogin" style="color:red; margin-top:10px;"></p>
+</div>
+
+<script>
+const API = 'http://localhost:3000';
+
+async function login() {
+  const usuario = document.getElementById('usuario').value;
+  const password = document.getElementById('password').value;
+  const error = document.getElementById('errorLogin');
+
+  error.textContent = '';
+
+  const res = await fetch(`${API}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usuario, password })
+  });
+
+  if (res.ok) {
+    // ✅ GUARDAR SESIÓN
+    localStorage.setItem('logeado', 'true');
+
+    // 👉 ENTRAR AL SISTEMA
+    window.location.href = 'index.html';
+  } else {
+    error.textContent = 'Usuario o contraseña incorrectos';
+  }
+}
+</script>
+
+</body>
+</html>

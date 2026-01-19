@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Bigger Gym</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<button class="btn-logout" onclick="cerrarSesion()">
+  🔒 Cerrar sesión
+</button>
+
+<body>
+
+<script>
+  if (!localStorage.getItem('logeado')) {
+    window.location.href = '/login.html';
+  }
+</script>
+
+<header>
+  <h1>💪 Bigger Gym</h1>
+  <p>Gestión de clientes y pagos</p>
+</header>
+
+<div class="container">
+
+  <!-- ================= DASHBOARD ================= -->
+  <section class="card">
+    <h2>📊 Dashboard General</h2>
+
+    <p>👥 Total clientes: <strong id="dashClientes">0</strong></p>
+    <p>⚠️ Clientes morosos: <strong id="dashMorosos">0</strong></p>
+    <p>💰 Ingresos del mes: <strong id="dashIngresosMes">$0</strong></p>
+    <p>📅 Ingresos del año: <strong id="dashIngresosAnio">$0</strong></p>
+  </section>
+
+  <section class="card">
+  <h2>📲 Recordatorios</h2>
+  <button onclick="verRecordatorios()">Enviar recordatorios de hoy</button>
+</section>
+
+
+  <!-- ================= REGISTRAR / EDITAR CLIENTE ================= -->
+  <section class="card">
+    <h2>Registrar / Editar Cliente</h2>
+
+    <input type="text" id="buscarClienteEditar" placeholder="Buscar cliente...">
+    <ul id="listaClientesEditar"></ul>
+
+    <input type="text" id="nombre" placeholder="Nombre">
+    <input type="text" id="telefono" placeholder="Teléfono">
+
+    <select id="tipo">
+      <option value="mensual">Mensual</option>
+      <option value="diario">Diario</option>
+    </select>
+
+    <button onclick="registrarCliente()">Registrar</button>
+    <button onclick="actualizarCliente()">Actualizar</button>
+  </section>
+
+  <!-- ================= REGISTRAR PAGO ================= -->
+  <section class="card">
+    <h2>Registrar Pago</h2>
+
+    <input type="text" id="buscarClientePago" placeholder="🔍 Buscar cliente...">
+    <ul id="listaClientesPago"></ul>
+
+    <input type="number" id="monto" placeholder="Monto">
+    <input type="text" id="medio_pago" placeholder="Medio de pago">
+
+    <button onclick="registrarPago()">Registrar Pago</button>
+  </section>
+
+  <!-- ================= CLIENTES MOROSOS ================= -->
+  <section class="card">
+    <h2>Clientes Morosos</h2>
+    <button onclick="verMorosos()">Ver Morosos</button>
+    <ul id="listaMorosos"></ul>
+  </section>
+
+  <!-- ================= REPORTE DE INGRESOS ================= -->
+  <section class="card reporte">
+    <h2>📊 Reporte de Ingresos</h2>
+
+    <label>Año</label>
+    <input type="number" id="anioFiltro" placeholder="Ej: 2026">
+
+    <label>Mes</label>
+    <input type="number" id="mesFiltro" placeholder="1 - 12">
+
+    <label>Día (opcional)</label>
+    <input type="date" id="diaFiltro">
+
+    <button onclick="verReporte()">Ver Reporte</button>
+
+    <div id="contenedorTabla" class="tabla-contenedor">
+      <table id="tablaReporte">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Tipo</th>
+            <th>Monto</th>
+            <th>Medio</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="total-ingresos">
+      <span id="totalIngresos">Total ingresos: $0</span>
+      <button class="btn-excel" onclick="exportarExcel()">📥 Excel</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+</body>
+</html>
+
