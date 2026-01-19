@@ -1,10 +1,11 @@
 {
   "name": "biggergym",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Sistema de gestion para gimnasio Bigger Gym",
+  "main": "backend/index.js",
   "scripts": {
-    "dev": "nodemon backend/index.js",
-    "start": "node backend/index.js"
+    "start": "node backend/index.js",
+    "dev": "nodemon backend/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
