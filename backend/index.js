@@ -317,6 +317,27 @@ app.post('/login', (req, res) => {
 // ===============================
 const PORT = process.env.PORT || 3000;
 
+// ===============================
+// PRUEBA CONEXIÓN BASE DE DATOS
+// ===============================
+app.get('/test-db', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT NOW() AS fecha');
+    res.json({
+      ok: true,
+      mensaje: 'Conexión exitosa con MySQL 🎉',
+      fecha: rows[0].fecha
+    });
+  } catch (error) {
+    console.error('❌ Error DB:', error);
+    res.status(500).json({
+      ok: false,
+      mensaje: 'Error conectando a MySQL',
+      error: error.message
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor activo en http://localhost:${PORT}`);
 });
