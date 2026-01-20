@@ -322,21 +322,12 @@ const PORT = process.env.PORT || 3000;
 // ===============================
 app.get('/test-db', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT 1 + 1 AS resultado');
-    res.json({
-      ok: true,
-      mensaje: 'Conectado a MySQL correctamente',
-      resultado: rows[0].resultado
-    });
+    const [rows] = await db.query('SELECT 1');
+    res.json({ ok: true, mensaje: 'Conectado a MySQL Railway ✅' });
   } catch (error) {
-    res.status(500).json({
-      ok: false,
-      mensaje: 'Error conectando a MySQL',
-      error: error.message
-    });
+    res.json({ ok: false, error: error.message });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Servidor activo en http://localhost:${PORT}`);
