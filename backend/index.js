@@ -318,18 +318,17 @@ app.post('/login', (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 // ===============================
-// PRUEBA CONEXIÓN BASE DE DATOS
+// PRUEBA CONEXIÓN MYSQL
 // ===============================
 app.get('/test-db', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT NOW() AS fecha');
+    const [rows] = await db.query('SELECT 1 + 1 AS resultado');
     res.json({
       ok: true,
-      mensaje: 'Conexión exitosa con MySQL 🎉',
-      fecha: rows[0].fecha
+      mensaje: 'Conectado a MySQL correctamente',
+      resultado: rows[0].resultado
     });
   } catch (error) {
-    console.error('❌ Error DB:', error);
     res.status(500).json({
       ok: false,
       mensaje: 'Error conectando a MySQL',
@@ -337,6 +336,7 @@ app.get('/test-db', async (req, res) => {
     });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`Servidor activo en http://localhost:${PORT}`);
