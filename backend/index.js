@@ -58,13 +58,13 @@ app.put('/clientes/:id', async (req, res) => {
 
   try {
     await db.query(
-      'UPDATE clientes SET nombre = ?, telefono = ?, tipo = ? WHERE id = ?',
+      'UPDATE clientes SET nombre = $1, telefono = $2, tipo = $3 WHERE id = $4',
       [nombre, telefono, tipo, id]
     );
 
     res.json({ mensaje: 'Cliente actualizado correctamente' });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al actualizar cliente' });
+    res.status(500).json({ mensaje: error.message });
   }
 });
 
@@ -73,12 +73,12 @@ app.put('/clientes/:id', async (req, res) => {
 // ===============================
 app.get('/clientes', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       'SELECT id, nombre, telefono FROM clientes ORDER BY nombre'
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener clientes' });
+    res.status(500).json({ mensaje: error.message });
   }
 });
 
@@ -89,19 +89,12 @@ app.delete('/clientes/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Primero borrar pagos del cliente
-    await db.query('DELETE FROM pagos WHERE cliente_id = ?', [id]);
-
-    // Luego borrar cliente
-    await db.query('DELETE FROM clientes WHERE id = ?', [id]);
+    await db.query('DELETE FROM pagos WHERE cliente_id = $1', [id]);
+    await db.query('DELETE FROM clientes WHERE id = $1', [id]);
 
     res.json({ mensaje: 'Cliente eliminado correctamente' });
-
   } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al eliminar cliente',
-      error: error.message
-    });
+    res.status(500).json({ mensaje: error.message });
   }
 });
 
@@ -111,20 +104,16 @@ app.delete('/clientes/:id', async (req, res) => {
 app.post('/pagos', async (req, res) => {
   const { cliente_id, monto, medio_pago } = req.body;
 
-  if (!cliente_id || !monto || !medio_pago) {
-    return res.status(400).json({ mensaje: 'Datos incompletos' });
-  }
-
   try {
     await db.query(
-  `INSERT INTO pagos (cliente_id, fecha_pago, monto, medio_pago, estado)
-   VALUES (?, CURDATE(), ?, ?, 'pagado')`,
-  [cliente_id, monto, medio_pago]
-);
+      `INSERT INTO pagos (cliente_id, fecha_pago, monto, medio_pago, estado)
+       VALUES ($1, CURRENT_DATE, $2, $3, 'pagado')`,
+      [cliente_id, monto, medio_pago]
+    );
 
     res.json({ mensaje: 'Pago registrado correctamente 💰' });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al registrar pago' });
+    res.status(500).json({ mensaje: error.message });
   }
 });
 
@@ -133,7 +122,7 @@ app.post('/pagos', async (req, res) => {
 // ===============================
 app.get('/clientes-morosos', async (req, res) => {
   try {
-    const [rows] = await db.query(`
+    const result = await db.query(`
       SELECT 
         c.id,
         c.nombre,
@@ -144,17 +133,13 @@ app.get('/clientes-morosos', async (req, res) => {
       LEFT JOIN pagos p ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
       GROUP BY c.id
-      HAVING 
-        ultimo_pago IS NULL
-        OR DATEDIFF(CURDATE(), ultimo_pago) > 7
+      HAVING MAX(p.fecha_pago) IS NULL
+         OR CURRENT_DATE - MAX(p.fecha_pago) > 7
     `);
 
-    res.json(rows);
+    res.json(result.rows);
   } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al obtener clientes morosos',
-      error: error.message
-    });
+    res.status(500).json({ mensaje: error.message });
   }
 });
 
@@ -167,27 +152,28 @@ app.get('/reporte-ingresos', async (req, res) => {
 
     let where = [];
     let params = [];
+    let i = 1;
 
     if (anio) {
-      where.push('YEAR(p.fecha_pago) = ?');
+      where.push(`EXTRACT(YEAR FROM p.fecha_pago) = $${i++}`);
       params.push(anio);
     }
 
     if (mes) {
-      where.push('MONTH(p.fecha_pago) = ?');
+      where.push(`EXTRACT(MONTH FROM p.fecha_pago) = $${i++}`);
       params.push(mes);
     }
 
     if (dia) {
-      where.push('DATE(p.fecha_pago) = ?');
+      where.push(`p.fecha_pago::date = $${i++}`);
       params.push(dia);
     }
 
     const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    const [detalle] = await db.query(`
+    const detalle = await db.query(`
       SELECT 
-        DATE(p.fecha_pago) AS fecha,
+        p.fecha_pago::date AS fecha,
         c.nombre AS cliente,
         c.tipo,
         p.monto,
@@ -198,15 +184,15 @@ app.get('/reporte-ingresos', async (req, res) => {
       ORDER BY p.fecha_pago DESC
     `, params);
 
-    const [[total]] = await db.query(`
+    const total = await db.query(`
       SELECT SUM(p.monto) AS total
       FROM pagos p
       ${whereSQL}
     `, params);
 
     res.json({
-      detalle,
-      total: total.total || 0
+      detalle: detalle.rows,
+      total: total.rows[0].total || 0
     });
 
   } catch (error) {
@@ -222,45 +208,35 @@ app.get('/reporte-ingresos', async (req, res) => {
 // ===============================
 app.get('/dashboard', async (req, res) => {
   try {
-    const [[clientes]] = await db.query(
-      'SELECT COUNT(*) AS total FROM clientes'
-    );
-
-    const [morosos] = await db.query(`
+    const clientes = await db.query('SELECT COUNT(*) FROM clientes');
+    const morosos = await db.query(`
       SELECT c.id
       FROM clientes c
       LEFT JOIN pagos p ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
       GROUP BY c.id
       HAVING MAX(p.fecha_pago) IS NULL
-         OR DATEDIFF(CURDATE(), MAX(p.fecha_pago)) > 27
+         OR CURRENT_DATE - MAX(p.fecha_pago) > 27
     `);
 
-    const [[ingresosMes]] = await db.query(`
-      SELECT SUM(monto) AS total
-      FROM pagos
-      WHERE MONTH(fecha_pago) = MONTH(CURDATE())
-      AND YEAR(fecha_pago) = YEAR(CURDATE())
+    const ingresosMes = await db.query(`
+      SELECT SUM(monto) FROM pagos
+      WHERE date_trunc('month', fecha_pago) = date_trunc('month', CURRENT_DATE)
     `);
 
-    const [[ingresosAnio]] = await db.query(`
-      SELECT SUM(monto) AS total
-      FROM pagos
-      WHERE YEAR(fecha_pago) = YEAR(CURDATE())
+    const ingresosAnio = await db.query(`
+      SELECT SUM(monto) FROM pagos
+      WHERE date_trunc('year', fecha_pago) = date_trunc('year', CURRENT_DATE)
     `);
 
     res.json({
-      totalClientes: clientes.total,
-      clientesMorosos: morosos.length,
-      ingresosMes: ingresosMes.total || 0,
-      ingresosAnio: ingresosAnio.total || 0
+      totalClientes: clientes.rows[0].count,
+      clientesMorosos: morosos.rows.length,
+      ingresosMes: ingresosMes.rows[0].sum || 0,
+      ingresosAnio: ingresosAnio.rows[0].sum || 0
     });
-
   } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al cargar dashboard',
-      error: error.message
-    });
+    res.status(500).json({ mensaje: error.message });
   }
 });
 
@@ -269,21 +245,21 @@ app.get('/dashboard', async (req, res) => {
 // ===============================
 app.get('/recordatorios', async (req, res) => {
   try {
-    const [rows] = await db.query(`
+    const result = await db.query(`
       SELECT 
         c.id,
         c.nombre,
         c.telefono,
-        DATE_ADD(MAX(p.fecha_pago), INTERVAL 1 MONTH) AS fecha_vencimiento,
-        DATE_SUB(DATE_ADD(MAX(p.fecha_pago), INTERVAL 1 MONTH), INTERVAL 3 DAY) AS fecha_recordatorio
+        MAX(p.fecha_pago) + INTERVAL '1 month' AS fecha_vencimiento,
+        (MAX(p.fecha_pago) + INTERVAL '1 month') - INTERVAL '3 days' AS fecha_recordatorio
       FROM clientes c
       JOIN pagos p ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
       GROUP BY c.id
-      HAVING fecha_recordatorio = CURDATE()
+      HAVING (MAX(p.fecha_pago) + INTERVAL '1 month') - INTERVAL '3 days' = CURRENT_DATE
     `);
 
-    res.json(rows);
+    res.json(result.rows);
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al obtener recordatorios',
