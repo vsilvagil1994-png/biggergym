@@ -313,24 +313,28 @@ app.post('/login', (req, res) => {
 // ===============================
 
 // ===============================
+// PRUEBA CONEXIÓN
+// ===============================
+app.get('/test-db', async (req, res) => {
+  try {
+    const result = await db.query('SELECT NOW()');
+    res.json({
+      ok: true,
+      fecha: result.rows[0]
+    });
+  } catch (error) {
+    res.json({
+      ok: false,
+      error: error.message
+    });
+  }
+});
+
+// ===============================
 // INICIAR SERVIDOR
 // ===============================
 const PORT = process.env.PORT || 3000;
 
-// ===============================
-// PRUEBA CONEXIÓN MYSQL
-// ===============================
-app.get('/test-db', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT 1');
-    res.json({ ok: true, mensaje: 'Conectado a MySQL Railway ✅' });
-  } catch (error) {
-    res.json({ ok: false, error: error.message });
-  }
-});
 
-app.listen(PORT, () => {
-  console.log(`Servidor activo en http://localhost:${PORT}`);
-});
 
 
