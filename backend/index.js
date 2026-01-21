@@ -34,11 +34,11 @@ app.post('/clientes', async (req, res) => {
   }
 
   try {
-    await db.query(
-      `INSERT INTO clientes (nombre, telefono, tipo, fecha_inscripcion)
-       VALUES (?, ?, ?, CURDATE())`,
-      [nombre, telefono, tipo]
-    );
+   await db.query(
+  `INSERT INTO clientes (nombre, telefono, tipo, fecha_inscripcion)
+   VALUES ($1, $2, $3, CURRENT_DATE)`,
+  [nombre, telefono, tipo]
+);
 
     res.json({ mensaje: 'Cliente registrado correctamente' });
   } catch (error) {
