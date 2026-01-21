@@ -317,10 +317,10 @@ app.post('/login', (req, res) => {
 // ===============================
 app.get('/test-db', async (req, res) => {
   try {
-    const result = await db.query('SELECT NOW() as ahora');
+    const result = await db.query('SELECT NOW()');
     res.json({
       ok: true,
-      ahora: result.rows[0].ahora
+      fecha: result.rows[0].now
     });
   } catch (error) {
     res.json({
