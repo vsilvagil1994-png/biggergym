@@ -256,7 +256,7 @@ app.get('/recordatorios', async (req, res) => {
       JOIN pagos p ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
       GROUP BY c.id
-      HAVING (MAX(p.fecha_pago) + INTERVAL '1 month') - INTERVAL '3 days' <= CURRENT_DATE
+      HAVING (MAX(p.fecha_pago) + INTERVAL '1 month') - INTERVAL '3 days' = CURRENT_DATE
     `);
 
     res.json(result.rows);
