@@ -195,7 +195,7 @@ app.get('/reporte-ingresos', async (req, res) => {
         p.fecha_pago::date AS fecha,
         c.nombre AS cliente,
         c.tipo,
-        p.monto,
+        p.monto::numeric AS monto,
         p.medio_pago
       FROM pagos p
       JOIN clientes c ON p.cliente_id = c.id
@@ -242,13 +242,13 @@ app.get('/dashboard', async (req, res) => {
     `);
 
     const ingresosMesResult = await db.query(`
-      SELECT SUM(monto) AS total
+      SELECT SUM(monto::numeric) AS total
       FROM pagos
       WHERE DATE_TRUNC('month', fecha_pago) = DATE_TRUNC('month', CURRENT_DATE)
     `);
 
     const ingresosAnioResult = await db.query(`
-      SELECT SUM(monto) AS total
+      SELECT SUM(monto::numeric) AS total
       FROM pagos
       WHERE DATE_TRUNC('year', fecha_pago) = DATE_TRUNC('year', CURRENT_DATE)
     `);

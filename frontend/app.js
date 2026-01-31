@@ -206,7 +206,7 @@ async function registrarPago() {
     return;
   }
 
-  const monto = document.getElementById('monto').value;
+  const monto = Number(document.getElementById('monto').value);
   const medio_pago = document.getElementById('medio_pago').value;
   const dias_pagados = parseInt(
     document.getElementById('dias_pagados').value
