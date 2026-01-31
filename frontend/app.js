@@ -208,23 +208,31 @@ async function registrarPago() {
 
   const monto = document.getElementById('monto').value;
   const medio_pago = document.getElementById('medio_pago').value;
-  const dias_pagados = document.getElementById('dias_pagados').value;
+  const dias_pagados = parseInt(
+    document.getElementById('dias_pagados').value
+  );
+
+  if (!dias_pagados || dias_pagados <= 0) {
+    alert('Ingrese un número válido de días pagados');
+    return;
+  }
 
   await fetch(`${API}/pagos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
-  cliente_id, 
-  monto, 
-  medio_pago,
-  dias_pagados
-  })
+      cliente_id: clientePago.id,   // ✅ ARREGLADO
+      monto, 
+      medio_pago,
+      dias_pagados
+    })
   });
 
   alert('Pago registrado');
   clientePago = null;
   document.getElementById('monto').value = '';
   document.getElementById('medio_pago').value = '';
+  document.getElementById('dias_pagados').value = '';
   document.getElementById('buscarClientePago').value = '';
 }
 
