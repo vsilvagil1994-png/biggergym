@@ -174,12 +174,12 @@ app.get('/reporte-ingresos', async (req, res) => {
     let i = 1;
 
     if (anio) {
-      where.push(`EXTRACT(YEAR FROM p.fecha_pago) = $${i++}`);
+      where.push(`EXTRACT(YEAR FROM p.fecha_pago::date) = $${i++}`);
       params.push(anio);
     }
 
     if (mes) {
-      where.push(`EXTRACT(MONTH FROM p.fecha_pago) = $${i++}`);
+      where.push(`EXTRACT(MONTH FROM p.fecha_pago::date) = $${i++}`);
       params.push(mes);
     }
 
@@ -242,16 +242,20 @@ app.get('/dashboard', async (req, res) => {
     `);
 
     const ingresosMesResult = await db.query(`
-      SELECT SUM(monto::numeric) AS total
+      SELECT SUM(monto) AS total
       FROM pagos
-      WHERE DATE_TRUNC('month', fecha_pago) = DATE_TRUNC('month', CURRENT_DATE)
+      WHERE fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
+      AND fecha_pago < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
     `);
 
+
     const ingresosAnioResult = await db.query(`
-      SELECT SUM(monto::numeric) AS total
+      SELECT SUM(monto) AS total
       FROM pagos
-      WHERE DATE_TRUNC('year', fecha_pago) = DATE_TRUNC('year', CURRENT_DATE)
+      WHERE fecha_pago >= DATE_TRUNC('year', CURRENT_DATE)
+      AND fecha_pago < DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year'
     `);
+
 
     res.json({
       totalClientes: clientesResult.rows[0].total,
