@@ -227,8 +227,11 @@ app.get('/reporte-ingresos', async (req, res) => {
 // ===============================
 app.get('/dashboard', async (req, res) => {
   try {
-    const clientes = await db.query('SELECT COUNT(*) FROM clientes');
-    const morosos = await db.query(`
+    const clientesResult = await db.query(
+      'SELECT COUNT(*) AS total FROM clientes'
+    );
+
+    const morososResult = await db.query(`
       SELECT c.id
       FROM clientes c
       LEFT JOIN pagos p ON c.id = p.cliente_id
@@ -238,24 +241,30 @@ app.get('/dashboard', async (req, res) => {
          OR CURRENT_DATE - MAX(p.fecha_pago) > 27
     `);
 
-    const ingresosMes = await db.query(`
-      SELECT SUM(monto) FROM pagos
-      WHERE date_trunc('month', fecha_pago) = date_trunc('month', CURRENT_DATE)
+    const ingresosMesResult = await db.query(`
+      SELECT SUM(monto) AS total
+      FROM pagos
+      WHERE DATE_TRUNC('month', fecha_pago) = DATE_TRUNC('month', CURRENT_DATE)
     `);
 
-    const ingresosAnio = await db.query(`
-      SELECT SUM(monto) FROM pagos
-      WHERE date_trunc('year', fecha_pago) = date_trunc('year', CURRENT_DATE)
+    const ingresosAnioResult = await db.query(`
+      SELECT SUM(monto) AS total
+      FROM pagos
+      WHERE DATE_TRUNC('year', fecha_pago) = DATE_TRUNC('year', CURRENT_DATE)
     `);
 
     res.json({
-      totalClientes: clientes.rows[0].count,
-      clientesMorosos: morosos.rows.length,
-      ingresosMes: ingresosMes.rows[0].sum || 0,
-      ingresosAnio: ingresosAnio.rows[0].sum || 0
+      totalClientes: clientesResult.rows[0].total,
+      clientesMorosos: morososResult.rows.length,
+      ingresosMes: ingresosMesResult.rows[0].total || 0,
+      ingresosAnio: ingresosAnioResult.rows[0].total || 0
     });
+
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    res.status(500).json({
+      mensaje: 'Error al cargar dashboard',
+      error: error.message
+    });
   }
 });
 
