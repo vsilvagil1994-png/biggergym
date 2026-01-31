@@ -20,6 +20,10 @@
   <p id="errorLogin" style="color:red; margin-top:10px;"></p>
 </div>
 
+<p style="margin-top:10px; text-align:center;">
+  <a href="#" onclick="recuperarAcceso()">¿Olvidaste tu usuario o contraseña?</a>
+</p>
+
 <script>
 async function login() {
   const usuario = document.getElementById('usuario').value;
@@ -29,7 +33,7 @@ async function login() {
   error.textContent = '';
 
   try {
-    const res = await fetch('/login', {   // 👈 CLAVE: ruta relativa
+    const res = await fetch('/login', {   // ✅ Ruta relativa para Render
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario, password })
@@ -46,8 +50,24 @@ async function login() {
     error.textContent = 'Error de conexión con el servidor';
   }
 }
+
+// ===============================
+// RECUPERAR ACCESO POR WHATSAPP
+// ===============================
+function recuperarAcceso() {
+  const mensaje = `Hola, necesito recuperar mi usuario o contraseña del sistema BiggerGym.
+
+Nombre:
+Nombre del gimnasio:
+
+Gracias.`;
+
+  const telefonoSoporte = '573208618664'; // 👈 TU NÚMERO
+
+  const url = `https://wa.me/${telefonoSoporte}?text=${encodeURIComponent(mensaje)}`;
+  window.open(url, '_blank');
+}
 </script>
 
 </body>
 </html>
-
