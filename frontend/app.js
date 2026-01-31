@@ -208,15 +208,17 @@ async function registrarPago() {
 
   const monto = document.getElementById('monto').value;
   const medio_pago = document.getElementById('medio_pago').value;
+  const dias_pagados = document.getElementById('dias_pagados').value;
 
   await fetch(`${API}/pagos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      cliente_id: clientePago.id,
-      monto,
-      medio_pago
-    })
+    body: JSON.stringify({ 
+  cliente_id, 
+  monto, 
+  medio_pago,
+  dias_pagados
+  })
   });
 
   alert('Pago registrado');

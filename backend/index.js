@@ -102,18 +102,37 @@ app.delete('/clientes/:id', async (req, res) => {
 // REGISTRAR PAGO
 // ===============================
 app.post('/pagos', async (req, res) => {
-  const { cliente_id, monto, medio_pago } = req.body;
+  const { cliente_id, monto, medio_pago, dias_pagados } = req.body;
 
   try {
-    await db.query(
-      `INSERT INTO pagos (cliente_id, fecha_pago, monto, medio_pago, estado)
-       VALUES ($1, CURRENT_DATE, $2, $3, 'pagado')`,
-      [cliente_id, monto, medio_pago]
-    );
+    await db.query(`
+      INSERT INTO pagos (
+        cliente_id, 
+        fecha_pago, 
+        monto, 
+        medio_pago, 
+        estado,
+        dias_pagados,
+        fecha_vencimiento
+      )
+      VALUES (
+        $1, 
+        CURRENT_DATE, 
+        $2, 
+        $3, 
+        'pagado',
+        $4,
+        CURRENT_DATE + ($4 || ' days')::interval
+      )
+    `, [cliente_id, monto, medio_pago, dias_pagados]);
 
-    res.json({ mensaje: 'Pago registrado correctamente 💰' });
+    res.json({ mensaje: 'Pago registrado con vencimiento automático ✅' });
+
   } catch (error) {
-    res.status(500).json({ mensaje: error.message });
+    res.status(500).json({
+      mensaje: 'Error al registrar pago',
+      error: error.message
+    });
   }
 });
 
