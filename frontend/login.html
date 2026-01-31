@@ -9,23 +9,28 @@
 
 <body>
 
-<div class="card" style="overflow: visible; height: auto; padding-bottom: 30px;">
-  <h2>🔐 Bigger Gym</h2>
+<div class="login-container">
+  <div class="login-card">
+    <h2>🔐 Bigger Gym</h2>
 
-  <input type="text" id="usuario" placeholder="Usuario">
-  <input type="password" id="password" placeholder="Contraseña">
+    <input type="text" id="usuario" placeholder="Usuario">
+    <input type="password" id="password" placeholder="Contraseña">
 
-  <button onclick="login()">Ingresar</button>
+    <button onclick="login()">Ingresar</button>
 
-  <p id="errorLogin" style="color:red; margin-top:10px;"></p>
+    <p id="errorLogin" style="color:red; margin-top:10px;"></p>
 
-  <!-- 🔴 LINK FORZADO A SER VISIBLE -->
-  <div style="margin-top:20px; text-align:center; z-index:9999; position:relative;">
-    <a href="#" 
-       onclick="recuperarAcceso()" 
-       style="color:#ffd700; font-size:14px; text-decoration:underline; cursor:pointer;">
-      ¿Olvidaste tu usuario o contraseña?
-    </a>
+    <!-- ✅ LINK VISIBLE -->
+    <p style="margin-top:15px; font-size:14px;">
+      <a href="#" onclick="recuperarAcceso()" style="color:#FFD700; text-decoration:underline;">
+        ¿Olvidaste tu usuario o contraseña?
+      </a>
+    </p>
+
+    <!-- Texto de soporte (opcional pero pro) -->
+    <p style="margin-top:8px; font-size:12px; color:#ccc;">
+      Soporte técnico Bigger Gym
+    </p>
   </div>
 </div>
 
@@ -57,7 +62,7 @@ async function login() {
 }
 
 function recuperarAcceso() {
-  const telefono = '573208618664';
+  const telefono = '573208618664'; // TU NÚMERO
   const mensaje = encodeURIComponent(
     'Hola, soy usuario de Bigger Gym. Olvidé mi usuario o contraseña. ¿Me pueden ayudar por favor?'
   );
@@ -69,3 +74,4 @@ function recuperarAcceso() {
 
 </body>
 </html>
+
