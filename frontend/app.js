@@ -243,20 +243,36 @@ async function registrarPago() {
 // ===============================
 async function cargarHistorialPagos(clienteId) {
   const res = await fetch(`${API}/clientes/${clienteId}/pagos`);
-  const pagos = await res.json();
+  const data = await res.json();
 
-  console.log('Pagos recibidos:', pagos); // 👈 DEBUG
+  console.log('Respuesta backend:', data);
 
   const ul = document.getElementById('historialPagos');
   ul.innerHTML = '';
 
+  // ✅ Si backend manda { pagos: [...] }
+  const pagos = Array.isArray(data) ? data : data.pagos;
+
+  if (!pagos || pagos.length === 0) {
+    ul.innerHTML = '<li>Este cliente no tiene pagos registrados.</li>';
+    return;
+  }
+
   pagos.forEach(p => {
+    const fecha = p.fecha_pago || p.fecha;
+    const venc = p.fecha_vencimiento || p.vencimiento;
+
     const li = document.createElement('li');
-    li.textContent = JSON.stringify(p);
+    li.textContent = 
+      `📅 ${formatearFecha(fecha)} | 💰 $${p.monto} | 🗓️ ${p.dias_pagados} días | ⏳ Vence: ${formatearFecha(venc)} | 💳 ${p.medio_pago}`;
     ul.appendChild(li);
   });
 }
 
+function formatearFecha(fecha) {
+  if (!fecha) return '—';
+  return new Date(fecha).toISOString().split('T')[0];
+}
 
 // ===============================
 // CLIENTES MOROSOS
