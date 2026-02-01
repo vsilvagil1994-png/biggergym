@@ -297,7 +297,7 @@ app.get('/recordatorios', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        p.fecha_vencimiento,
+        p.fecha_vencimiento::date AS fecha_vencimiento,
         (p.fecha_vencimiento - CURRENT_DATE) AS dias_para_vencer
       FROM pagos p
       JOIN clientes c ON c.id = p.cliente_id
