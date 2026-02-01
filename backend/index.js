@@ -297,16 +297,18 @@ app.get('/recordatorios', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        MAX(p.fecha_pago) + INTERVAL '1 month' AS fecha_vencimiento,
-        (MAX(p.fecha_pago) + INTERVAL '1 month') - INTERVAL '3 days' AS fecha_recordatorio
+        p.fecha_vencimiento,
+        (p.fecha_vencimiento - INTERVAL '3 days')::date AS fecha_recordatorio
       FROM clientes c
       JOIN pagos p ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
-      GROUP BY c.id
-      HAVING (MAX(p.fecha_pago) + INTERVAL '1 month') - INTERVAL '3 days' = CURRENT_DATE
+        AND p.fecha_vencimiento IS NOT NULL
+        AND (p.fecha_vencimiento - INTERVAL '3 days')::date = CURRENT_DATE
+      ORDER BY p.fecha_vencimiento ASC
     `);
 
     res.json(result.rows);
+
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al obtener recordatorios',

@@ -393,7 +393,7 @@ async function verRecordatorios() {
   const res = await fetch(`${API}/recordatorios`);
   const data = await res.json();
 
-  if (data.length === 0) {
+  if (!Array.isArray(data) || data.length === 0) {
     alert('Hoy no hay recordatorios 😊');
     return;
   }
@@ -404,11 +404,13 @@ Te recordamos que tu pago del gimnasio vence el ${c.fecha_vencimiento}.
 ¡Te esperamos! 💪`;
 
     const telefono = c.telefono.replace(/\D/g, '');
-    const url = `https://wa.me/57${3125570324}?text=${encodeURIComponent(mensaje)}`;
+
+    const url = `https://wa.me/57${3219206176}?text=${encodeURIComponent(mensaje)}`;
 
     window.open(url, '_blank');
   });
 }
+
 
 // ===============================
 // HELPERS
