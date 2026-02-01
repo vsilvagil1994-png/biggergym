@@ -152,47 +152,24 @@ app.get('/clientes-morosos', async (req, res) => {
 // ===============================
 app.get('/reporte-ingresos', async (req, res) => {
   try {
-    const { dia, mes, anio } = req.query;
-
-    let where = [];
-    let params = [];
-    let i = 1;
-
-    if (anio) {
-      where.push(`EXTRACT(YEAR FROM p.fecha_pago::date) = $${i++}`);
-      params.push(anio);
-    }
-
-    if (mes) {
-      where.push(`EXTRACT(MONTH FROM p.fecha_pago::date) = $${i++}`);
-      params.push(mes);
-    }
-
-    if (dia) {
-      where.push(`p.fecha_pago::date = $${i++}`);
-      params.push(dia);
-    }
-
-    const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    console.log('Query recibida:', req.query); // 👈 DEBUG
 
     const detalle = await db.query(`
       SELECT 
         p.fecha_pago::date AS fecha,
         c.nombre AS cliente,
         c.tipo,
-        p.monto::numeric AS monto,
+        p.monto,
         p.medio_pago
       FROM pagos p
       JOIN clientes c ON p.cliente_id = c.id
-      ${whereSQL}
       ORDER BY p.fecha_pago DESC
-    `, params);
+    `);
 
     const total = await db.query(`
-      SELECT SUM(p.monto) AS total
-      FROM pagos p
-      ${whereSQL}
-    `, params);
+      SELECT SUM(monto) AS total
+      FROM pagos
+    `);
 
     res.json({
       detalle: detalle.rows,
@@ -200,6 +177,7 @@ app.get('/reporte-ingresos', async (req, res) => {
     });
 
   } catch (error) {
+    console.error('Error reporte:', error);
     res.status(500).json({
       mensaje: 'Error al generar reporte',
       error: error.message
