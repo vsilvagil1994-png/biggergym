@@ -412,7 +412,7 @@ async function verRecordatorios() {
 
     const mensaje = `Hola ${c.nombre} 
 Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
-¡Te esperamos pronto para contruir juntos una mejor versión! `;
+¡Te esperamos pronto para construir juntos una mejor versión! `;
 
     const telefono = c.telefono.replace(/\D/g, '');
     const url = `https://wa.me/57${3125570324}?text=${encodeURIComponent(mensaje)}`;
