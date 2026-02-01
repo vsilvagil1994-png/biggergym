@@ -245,32 +245,18 @@ async function cargarHistorialPagos(clienteId) {
   const res = await fetch(`${API}/clientes/${clienteId}/pagos`);
   const pagos = await res.json();
 
+  console.log('Pagos recibidos:', pagos); // 👈 DEBUG
+
   const ul = document.getElementById('historialPagos');
   ul.innerHTML = '';
 
-  if (pagos.length === 0) {
-    ul.innerHTML = '<li>Este cliente no tiene pagos registrados.</li>';
-    return;
-  }
-
   pagos.forEach(p => {
     const li = document.createElement('li');
-
-    // ✅ Formatear fechas bonitas
-    const fecha = p.fecha_pago 
-      ? new Date(p.fecha_pago).toLocaleDateString()
-      : '—';
-
-    const vencimiento = p.vencimiento
-      ? new Date(p.vencimiento).toLocaleDateString()
-      : '—';
-
-    li.textContent = 
-      `📅 ${fecha} | 💰 $${p.monto} | 🗓️ ${p.dias_pagados} días | ⏳ Vence: ${vencimiento} | 💳 ${p.medio_pago}`;
-
+    li.textContent = JSON.stringify(p);
     ul.appendChild(li);
   });
 }
+
 
 // ===============================
 // CLIENTES MOROSOS
