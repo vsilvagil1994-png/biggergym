@@ -288,7 +288,7 @@ app.get('/dashboard', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES PARA RECORDATORIO (3 DÍAS ANTES)
+// CLIENTES PARA RECORDATORIO (PRÓXIMOS 3 DÍAS)
 // ===============================
 app.get('/recordatorios', async (req, res) => {
   try {
@@ -298,17 +298,16 @@ app.get('/recordatorios', async (req, res) => {
         c.nombre,
         c.telefono,
         p.fecha_vencimiento,
-        (p.fecha_vencimiento - INTERVAL '3 days')::date AS fecha_recordatorio
-      FROM clientes c
-      JOIN pagos p ON c.id = p.cliente_id
+        (p.fecha_vencimiento - CURRENT_DATE) AS dias_para_vencer
+      FROM pagos p
+      JOIN clientes c ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
-        AND p.fecha_vencimiento IS NOT NULL
-        AND (p.fecha_vencimiento - INTERVAL '3 days')::date = CURRENT_DATE
-      ORDER BY p.fecha_vencimiento ASC
+        AND p.fecha_vencimiento BETWEEN CURRENT_DATE 
+                                    AND CURRENT_DATE + INTERVAL '3 days'
+      ORDER BY p.fecha_vencimiento;
     `);
 
     res.json(result.rows);
-
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al obtener recordatorios',
@@ -316,6 +315,7 @@ app.get('/recordatorios', async (req, res) => {
     });
   }
 });
+
 
 // ===============================
 // LOGIN SIMPLE (TEMPORAL)
