@@ -195,6 +195,8 @@ function seleccionarClientePago(cliente) {
   clientePago = cliente;
   document.getElementById('buscarClientePago').value = cliente.nombre;
   document.getElementById('listaClientesPago').innerHTML = '';
+    // 🔥 CARGAR HISTORIAL AUTOMÁTICAMENTE
+  cargarHistorialPagos(cliente.id);
 }
 
 // ===============================
@@ -221,7 +223,7 @@ async function registrarPago() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
-      cliente_id: clientePago.id,   // ✅ ARREGLADO
+      cliente_id: clientePago.id,   
       monto, 
       medio_pago,
       dias_pagados
@@ -234,6 +236,29 @@ async function registrarPago() {
   document.getElementById('medio_pago').value = '';
   document.getElementById('dias_pagados').value = '';
   document.getElementById('buscarClientePago').value = '';
+}
+
+// ===============================
+// CARGAR HISTORIAL DE PAGOS
+// ===============================
+async function cargarHistorialPagos(clienteId) {
+  const res = await fetch(`${API}/clientes/${clienteId}/pagos`);
+  const pagos = await res.json();
+
+  const ul = document.getElementById('historialPagos');
+  ul.innerHTML = '';
+
+  if (pagos.length === 0) {
+    ul.innerHTML = '<li>Este cliente no tiene pagos registrados.</li>';
+    return;
+  }
+
+  pagos.forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = 
+      `📅 ${p.fecha} | 💰 $${p.monto} | 🗓️ ${p.dias_pagados} días | ⏳ Vence: ${p.vencimiento} | 💳 ${p.medio_pago}`;
+    ul.appendChild(li);
+  });
 }
 
 // ===============================

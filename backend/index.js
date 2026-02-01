@@ -122,6 +122,37 @@ app.post('/pagos', async (req, res) => {
 });
 
 // ===============================
+// HISTORIAL DE PAGOS POR CLIENTE
+// ===============================
+app.get('/clientes/:id/pagos', async (req, res) => {
+  const clienteId = req.params.id;
+
+  try {
+    const result = await db.query(`
+      SELECT 
+        id,
+        fecha_pago::date AS fecha,
+        monto,
+        medio_pago,
+        dias_pagados,
+        fecha_vencimiento::date AS vencimiento
+      FROM pagos
+      WHERE cliente_id = $1
+      ORDER BY fecha_pago DESC
+    `, [clienteId]);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al obtener historial de pagos',
+      error: error.message
+    });
+  }
+});
+
+
+// ===============================
 // CLIENTES MOROSOS
 // ===============================
 app.get('/clientes-morosos', async (req, res) => {
