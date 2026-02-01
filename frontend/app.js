@@ -415,7 +415,7 @@ Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
 ¡Te esperamos pronto para construir juntos una mejor versión! `;
 
     const telefono = c.telefono.replace(/\D/g, '');
-    const url = `https://wa.me/57${3125570324}?text=${encodeURIComponent(mensaje)}`;
+    const url = `https://wa.me/57${telefono}?text=${encodeURIComponent(mensaje)}`;
 
     window.open(url, '_blank');
   });
