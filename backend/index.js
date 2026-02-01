@@ -129,17 +129,16 @@ app.get('/clientes/:id/pagos', async (req, res) => {
 
   try {
     const result = await db.query(`
-      SELECT 
-        id,
-        fecha_pago::date AS fecha,
-        monto,
-        medio_pago,
-        dias_pagados,
-        fecha_vencimiento::date AS vencimiento
-      FROM pagos
-      WHERE cliente_id = $1
-      ORDER BY fecha_pago DESC
-    `, [clienteId]);
+  SELECT 
+    fecha_pago,
+    monto,
+    dias_pagados,
+    medio_pago,
+    (fecha_pago + (dias_pagados || ' days')::interval)::date AS vencimiento
+  FROM pagos
+  WHERE cliente_id = $1
+  ORDER BY fecha_pago DESC
+`, [id]);
 
     res.json(result.rows);
 

@@ -255,8 +255,19 @@ async function cargarHistorialPagos(clienteId) {
 
   pagos.forEach(p => {
     const li = document.createElement('li');
+
+    // ✅ Formatear fechas bonitas
+    const fecha = p.fecha_pago 
+      ? new Date(p.fecha_pago).toLocaleDateString()
+      : '—';
+
+    const vencimiento = p.vencimiento
+      ? new Date(p.vencimiento).toLocaleDateString()
+      : '—';
+
     li.textContent = 
-      `📅 ${p.fecha} | 💰 $${p.monto} | 🗓️ ${p.dias_pagados} días | ⏳ Vence: ${p.vencimiento} | 💳 ${p.medio_pago}`;
+      `📅 ${fecha} | 💰 $${p.monto} | 🗓️ ${p.dias_pagados} días | ⏳ Vence: ${vencimiento} | 💳 ${p.medio_pago}`;
+
     ul.appendChild(li);
   });
 }
