@@ -288,7 +288,7 @@ app.get('/dashboard', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES PARA RECORDATORIO (PRÓXIMOS 3 DÍAS)
+// CLIENTES PARA RECORDATORIO (3 DÍAS ANTES)
 // ===============================
 app.get('/recordatorios', async (req, res) => {
   try {
@@ -297,13 +297,14 @@ app.get('/recordatorios', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        p.fecha_vencimiento::date AS fecha_vencimiento,
-        (p.fecha_vencimiento - CURRENT_DATE) AS dias_para_vencer
+        p.fecha_vencimiento,
+        (p.fecha_vencimiento - INTERVAL '3 days')::date AS fecha_recordatorio,
+        CURRENT_DATE AS hoy
       FROM pagos p
       JOIN clientes c ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
-        AND p.fecha_vencimiento BETWEEN CURRENT_DATE 
-                                    AND CURRENT_DATE + INTERVAL '3 days'
+        AND p.dias_pagados = 30
+        AND (p.fecha_vencimiento - INTERVAL '3 days')::date = CURRENT_DATE
       ORDER BY p.fecha_vencimiento;
     `);
 
@@ -315,7 +316,6 @@ app.get('/recordatorios', async (req, res) => {
     });
   }
 });
-
 
 // ===============================
 // LOGIN SIMPLE (TEMPORAL)
