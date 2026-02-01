@@ -295,7 +295,7 @@ async function verReporte() {
     data.detalle.forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${r.fecha.split('T')[0]}</td>
+        <td>${r.fecha}</td>
         <td>${r.cliente}</td>
         <td>${r.tipo}</td>
         <td>$${Number(r.monto).toLocaleString()}</td>

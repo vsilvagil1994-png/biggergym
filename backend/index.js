@@ -152,7 +152,27 @@ app.get('/clientes-morosos', async (req, res) => {
 // ===============================
 app.get('/reporte-ingresos', async (req, res) => {
   try {
-    console.log('Query recibida:', req.query); // 👈 DEBUG
+    const { dia, mes, anio } = req.query;
+
+    let where = [];
+    let params = [];
+
+    if (anio) {
+      params.push(anio);
+      where.push(`EXTRACT(YEAR FROM p.fecha_pago) = $${params.length}`);
+    }
+
+    if (mes) {
+      params.push(mes);
+      where.push(`EXTRACT(MONTH FROM p.fecha_pago) = $${params.length}`);
+    }
+
+    if (dia) {
+      params.push(dia);
+      where.push(`EXTRACT(DAY FROM p.fecha_pago) = $${params.length}`);
+    }
+
+    const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
     const detalle = await db.query(`
       SELECT 
@@ -163,13 +183,15 @@ app.get('/reporte-ingresos', async (req, res) => {
         p.medio_pago
       FROM pagos p
       JOIN clientes c ON p.cliente_id = c.id
+      ${whereSQL}
       ORDER BY p.fecha_pago DESC
-    `);
+    `, params);
 
     const total = await db.query(`
-      SELECT SUM(monto) AS total
-      FROM pagos
-    `);
+      SELECT SUM(p.monto) AS total
+      FROM pagos p
+      ${whereSQL}
+    `, params);
 
     res.json({
       detalle: detalle.rows,
