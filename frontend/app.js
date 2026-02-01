@@ -393,19 +393,29 @@ async function verRecordatorios() {
   const res = await fetch(`${API}/recordatorios`);
   const data = await res.json();
 
-  if (!Array.isArray(data) || data.length === 0) {
+  console.log('DEBUG recordatorios:', data);
+
+  if (data.length === 0) {
     alert('Hoy no hay recordatorios 😊');
     return;
   }
 
   data.forEach(c => {
-    const mensaje = `Hola ${c.nombre} 👋
-Te recordamos que tu pago del gimnasio vence el ${c.fecha_vencimiento}.
-¡Te esperamos! 💪`;
+
+    // ✅ FORMATEO FUERTE DE FECHA (SIN HORA)
+    const fechaVence = new Date(c.fecha_vencimiento)
+      .toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+
+    const mensaje = `Hola ${c.nombre} 
+Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
+¡Te esperamos pronto para contruir juntos una mejor versión! `;
 
     const telefono = c.telefono.replace(/\D/g, '');
-
-    const url = `https://wa.me/57${3227284984}?text=${encodeURIComponent(mensaje)}`;
+    const url = `https://wa.me/57${3125570324}?text=${encodeURIComponent(mensaje)}`;
 
     window.open(url, '_blank');
   });
