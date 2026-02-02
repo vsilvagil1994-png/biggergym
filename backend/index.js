@@ -288,8 +288,7 @@ app.get('/dashboard', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES PARA RECORDATORIO (3 DÍAS ANTES DEL VENCIMIENTO)
-// MENSUALES + POR DÍAS
+// CLIENTES PARA RECORDATORIO (HOY)
 // ===============================
 app.get('/recordatorios', async (req, res) => {
   try {
@@ -298,14 +297,15 @@ app.get('/recordatorios', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        MAX(p.fecha_pago)::date + INTERVAL '1 month' AS fecha_vencimiento,
-        (MAX(p.fecha_pago)::date + INTERVAL '1 month') - INTERVAL '3 days' AS fecha_recordatorio,
-        CURRENT_DATE AS hoy
+        c.tipo,
+        p.fecha_pago,
+        p.dias_pagados,
+        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento
       FROM clientes c
       JOIN pagos p ON c.id = p.cliente_id
-      WHERE c.tipo = 'mensual'
-      GROUP BY c.id
-      ORDER BY fecha_recordatorio
+      WHERE 
+        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date = CURRENT_DATE
+      ORDER BY c.nombre
     `);
 
     res.json(result.rows);
@@ -316,6 +316,7 @@ app.get('/recordatorios', async (req, res) => {
     });
   }
 });
+
 
 // ===============================
 // LOGIN SIMPLE (TEMPORAL)
