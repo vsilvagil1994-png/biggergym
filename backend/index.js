@@ -293,34 +293,30 @@ app.get('/dashboard', async (req, res) => {
 // ===============================
 app.get('/recordatorios', async (req, res) => {
   try {
-    console.log('➡️ Entró a /recordatorios');
-
     const result = await db.query(`
       SELECT 
         c.id,
         c.nombre,
         c.telefono,
-        MAX(p.fecha_pago) AS ultimo_pago,
-        MAX(p.fecha_pago) + INTERVAL '1 month' AS fecha_vencimiento,
-        (MAX(p.fecha_pago) + INTERVAL '1 month') - INTERVAL '3 days' AS fecha_recordatorio
+        MAX(p.fecha_pago)::date + INTERVAL '1 month' AS fecha_vencimiento,
+        (MAX(p.fecha_pago)::date + INTERVAL '1 month') - INTERVAL '3 days' AS fecha_recordatorio,
+        CURRENT_DATE AS hoy
       FROM clientes c
       JOIN pagos p ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
       GROUP BY c.id
-      ORDER BY fecha_vencimiento;
+      ORDER BY fecha_recordatorio
     `);
-
-    console.log('📦 Recordatorios encontrados:', result.rows);
 
     res.json(result.rows);
   } catch (error) {
-    console.error('❌ Error en /recordatorios:', error);
     res.status(500).json({
       mensaje: 'Error al obtener recordatorios',
       error: error.message
     });
   }
 });
+
 
 // ===============================
 // LOGIN SIMPLE (TEMPORAL)
