@@ -387,7 +387,7 @@ async function cargarDashboard() {
 }
 
 // ===============================
-// RECORDATORIOS POR WHATSAPP
+// MOSTRAR LISTA DE RECORDATORIOS
 // ===============================
 async function verRecordatorios() {
   const res = await fetch(`${API}/recordatorios`);
@@ -395,14 +395,16 @@ async function verRecordatorios() {
 
   console.log('DEBUG recordatorios:', data);
 
+  const contenedor = document.getElementById('listaRecordatorios');
+  contenedor.innerHTML = '';
+
   if (data.length === 0) {
-    alert('Hoy no hay recordatorios 😊');
+    contenedor.innerHTML = '<p>😊 Hoy no hay recordatorios</p>';
     return;
   }
 
   data.forEach(c => {
 
-    // ✅ FORMATEO FUERTE DE FECHA (SIN HORA)
     const fechaVence = new Date(c.fecha_vencimiento)
       .toLocaleDateString('es-CO', {
         year: 'numeric',
@@ -410,17 +412,50 @@ async function verRecordatorios() {
         day: '2-digit'
       });
 
-    const mensaje = `Hola ${c.nombre} 
-Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
-¡Te esperamos pronto para construir juntos una mejor versión! `;
+    const div = document.createElement('div');
+    div.style.border = '1px solid #ccc';
+    div.style.padding = '8px';
+    div.style.marginBottom = '6px';
+    div.style.borderRadius = '6px';
 
-    const telefono = c.telefono.replace(/\D/g, '');
-    const url = `https://wa.me/57${telefono}?text=${encodeURIComponent(mensaje)}`;
+    div.innerHTML = `
+      <strong>${c.nombre}</strong><br>
+      📞 ${c.telefono}<br>
+      ⏳ Vence: ${fechaVence}<br>
+      <button 
+        id="btn-${c.id}" 
+        style="background:red;color:white;padding:6px;border:none;border-radius:4px;cursor:pointer"
+        onclick="enviarWhatsApp(${c.id}, '${c.telefono}', '${c.nombre}', '${fechaVence}')"
+      >
+        Enviar WhatsApp
+      </button>
+    `;
 
-    window.open(url, '_blank');
+    contenedor.appendChild(div);
   });
 }
 
+// ===============================
+// ENVIAR WHATSAPP INDIVIDUAL
+// ===============================
+function enviarWhatsApp(id, telefono, nombre, fechaVence) {
+  const mensaje = `Hola ${nombre} 👋
+Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
+¡Te esperamos! 💪`;
+
+  const telLimpio = telefono.replace(/\D/g, '');
+  const url = `https://wa.me/57${telLimpio}?text=${encodeURIComponent(mensaje)}`;
+
+  window.open(url, '_blank');
+
+  // Cambiar color del botón a verde
+  const btn = document.getElementById(`btn-${id}`);
+  if (btn) {
+    btn.style.background = 'green';
+    btn.textContent = 'Enviado ✔️';
+    btn.disabled = true;
+  }
+}
 
 // ===============================
 // HELPERS
