@@ -288,7 +288,7 @@ app.get('/dashboard', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES PARA RECORDATORIO (3 DÍAS ANTES)
+// CLIENTES PARA RECORDATORIO (3 DÍAS ANTES - TODOS)
 // ===============================
 app.get('/recordatorios', async (req, res) => {
   try {
@@ -297,14 +297,14 @@ app.get('/recordatorios', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
+        c.tipo,
         p.fecha_vencimiento,
         (p.fecha_vencimiento - INTERVAL '3 days')::date AS fecha_recordatorio,
         CURRENT_DATE AS hoy
       FROM pagos p
       JOIN clientes c ON c.id = p.cliente_id
-      WHERE c.tipo = 'mensual'
-        AND p.dias_pagados = 30
-        AND (p.fecha_vencimiento - INTERVAL '3 days')::date = CURRENT_DATE
+      WHERE 
+        (p.fecha_vencimiento - INTERVAL '3 days')::date = CURRENT_DATE
       ORDER BY p.fecha_vencimiento;
     `);
 
