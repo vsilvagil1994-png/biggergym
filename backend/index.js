@@ -317,6 +317,30 @@ app.get('/recordatorios', async (req, res) => {
   }
 });
 
+// ===============================
+// DEBUG FECHAS Y VENCIMIENTOS
+// ===============================
+app.get('/debug-fechas', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        c.id,
+        c.nombre,
+        c.tipo,
+        p.fecha_pago,
+        p.dias_pagados,
+        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date AS vencimiento_calculado
+      FROM clientes c
+      JOIN pagos p ON c.id = p.cliente_id
+      ORDER BY vencimiento_calculado DESC
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 // ===============================
 // LOGIN SIMPLE (TEMPORAL)
