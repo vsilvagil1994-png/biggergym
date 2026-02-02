@@ -6,11 +6,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 
+<body>
+
 <button class="btn-logout" onclick="cerrarSesion()">
   🔒 Cerrar sesión
 </button>
 
-<body>
 
 <script>
   if (!localStorage.getItem('logeado')) {
@@ -35,10 +36,15 @@
     <p>📅 Ingresos del año: <strong id="dashIngresosAnio">$0</strong></p>
   </section>
 
-  <section class="card">
+  <!-- ================= Recordatorios ================= -->
+ <section class="card">
   <h2>📲 Recordatorios</h2>
   <button onclick="verRecordatorios()">Enviar recordatorios de hoy</button>
+
+  <!-- 👇 AQUÍ SE MOSTRARÁ LA LISTA -->
+  <div id="listaRecordatorios" style="margin-top: 10px;"></div>
 </section>
+
 
 
   <!-- ================= REGISTRAR / EDITAR CLIENTE ================= -->
