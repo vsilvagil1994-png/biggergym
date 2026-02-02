@@ -1,5 +1,7 @@
 const { Pool } = require('pg');
 
+console.log('🟢 DATABASE_URL EN USO:', process.env.DATABASE_URL);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -10,4 +12,5 @@ const pool = new Pool({
 module.exports = {
   query: (text, params) => pool.query(text, params),
 };
+
 
