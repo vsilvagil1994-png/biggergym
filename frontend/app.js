@@ -276,7 +276,7 @@ function formatearFecha(fecha) {
 
 
 // ===============================
-// CLIENTES MOROSOS
+// CLIENTES MOROSOS CON WHATSAPP
 // ===============================
 async function verMorosos() {
   const res = await fetch(`${API}/clientes-morosos`);
@@ -292,12 +292,60 @@ async function verMorosos() {
 
   data.forEach(c => {
     const li = document.createElement('li');
-    li.textContent = 
-      `⚠️ ${c.nombre} - ${c.telefono} | Venció: ${c.fecha_vencimiento || 'Sin pagos'}`;
+    li.style.display = 'flex';
+    li.style.justifyContent = 'space-between';
+    li.style.alignItems = 'center';
+    li.style.gap = '8px';
+
+    const info = document.createElement('span');
+    info.textContent = `${c.nombre} - ${c.telefono}`;
+
+    const btn = document.createElement('button');
+
+    if (c.ya_enviado) {
+      btn.textContent = 'Enviado ✅';
+      btn.style.background = 'green';
+      btn.style.color = 'white';
+      btn.disabled = true;
+      btn.classList.add('btn-small');
+    } else {
+      btn.textContent = 'Enviar WhatsApp';
+      btn.style.background = 'red';
+      btn.style.color = 'white';
+      btn.classList.add('btn-small');
+
+      btn.onclick = async () => {
+        const mensaje = `Hola ${c.nombre} 👋
+Te recordamos que tienes un pago pendiente del gimnasio 💪
+Por favor acércate para ponerte al día.
+¡Gracias!`;
+
+        const telLimpio = c.telefono.replace(/\D/g, '');
+        const url = `https://wa.me/57${telLimpio}?text=${encodeURIComponent(mensaje)}`;
+
+        window.open(url, '_blank');
+
+        // Guardar como enviado en backend
+        await fetch(`${API}/morosos/enviado`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cliente_id: c.id
+          })
+        });
+
+        // Cambiar botón
+        btn.textContent = 'Enviado ✅';
+        btn.style.background = 'green';
+        btn.disabled = true;
+      };
+    }
+
+    li.appendChild(info);
+    li.appendChild(btn);
     lista.appendChild(li);
   });
 }
-
 
 // ===============================
 // REPORTE DE INGRESOS

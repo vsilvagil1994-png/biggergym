@@ -127,9 +127,6 @@ app.post('/pagos', async (req, res) => {
 });
 
 // ===============================
-// RECORDATORIOS PROXIMOS HOY + DOS DÍAS
-// ===============================
-// ===============================
 // CLIENTES PARA RECORDATORIO (HOY)
 // ===============================
 app.get('/recordatorios', async (req, res) => {
@@ -223,7 +220,7 @@ app.get('/clientes/:id/pagos', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES MOROSOS (ROBUSTO)
+// CLIENTES MOROSOS
 // ===============================
 app.get('/clientes-morosos', async (req, res) => {
   try {
@@ -232,28 +229,55 @@ app.get('/clientes-morosos', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        MAX(
-          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
-        ) AS fecha_vencimiento
+        c.tipo,
+        MAX(p.fecha_pago) AS ultimo_pago,
+        CASE 
+          WHEN me.id IS NOT NULL THEN true
+          ELSE false
+        END AS ya_enviado
       FROM clientes c
       LEFT JOIN pagos p ON c.id = p.cliente_id
-      GROUP BY c.id
-      HAVING 
-        MAX(
-          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
-        ) < CURRENT_DATE
-        OR MAX(
-          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
-        ) IS NULL
-      ORDER BY fecha_vencimiento ASC NULLS FIRST
+      LEFT JOIN morosos_enviados me 
+        ON me.cliente_id = c.id
+        AND me.fecha_envio = CURRENT_DATE
+      WHERE c.tipo = 'mensual'
+      GROUP BY c.id, me.id
+      HAVING MAX(p.fecha_pago) IS NULL
+         OR CURRENT_DATE - MAX(p.fecha_pago) > 27
+      ORDER BY c.nombre
     `);
 
     res.json(result.rows);
+
   } catch (error) {
-    console.error('Error morosos:', error);
     res.status(500).json({ mensaje: error.message });
   }
 });
+
+// ===============================
+// MARCAR MOROSO COMO NOTIFICADO
+// ===============================
+app.post('/morosos/enviado', async (req, res) => {
+  const { cliente_id } = req.body;
+
+  try {
+    await db.query(`
+      INSERT INTO morosos_enviados (cliente_id, enviado)
+      VALUES ($1, true)
+      ON CONFLICT DO NOTHING
+    `, [cliente_id]);
+
+    res.json({ mensaje: 'Moroso marcado como notificado ✅' });
+
+  } catch (error) {
+    console.error('Error moroso enviado:', error);
+    res.status(500).json({
+      mensaje: 'Error al marcar moroso como enviado',
+      error: error.message
+    });
+  }
+});
+
 
 // ===============================
 // REPORTE DE INGRESOS CON FILTRO AVANZADO
