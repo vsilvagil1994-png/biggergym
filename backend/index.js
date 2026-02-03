@@ -178,7 +178,7 @@ app.get('/clientes-morosos', async (req, res) => {
         (
           (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date 
           - MAX(p.fecha_pago)::date
-        ) > 3
+        ) > 1
     `);
 
     res.json(result.rows);
