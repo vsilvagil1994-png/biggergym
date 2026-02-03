@@ -36,7 +36,7 @@ app.post('/clientes', async (req, res) => {
   try {
    await db.query(
   `INSERT INTO clientes (nombre, telefono, tipo, fecha_inscripcion)
-   VALUES ($1, $2, $3, CURRENT_DATE)`,
+   VALUES ($1, $2, $3, CURRENT_DATE::date)`,
   [nombre, telefono, tipo]
 );
 
@@ -167,13 +167,18 @@ app.get('/clientes-morosos', async (req, res) => {
         c.nombre,
         c.telefono,
         c.tipo,
-        MAX(p.fecha_pago) AS ultimo_pago
+        MAX(p.fecha_pago)::date AS ultimo_pago
       FROM clientes c
       LEFT JOIN pagos p ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
       GROUP BY c.id
-      HAVING MAX(p.fecha_pago) IS NULL
-         OR CURRENT_DATE - MAX(p.fecha_pago) > 7
+      HAVING 
+        MAX(p.fecha_pago) IS NULL
+        OR 
+        (
+          (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date 
+          - MAX(p.fecha_pago)::date
+        ) > 3
     `);
 
     res.json(result.rows);
@@ -194,17 +199,17 @@ app.get('/reporte-ingresos', async (req, res) => {
 
     if (anio) {
       params.push(anio);
-      where.push(`EXTRACT(YEAR FROM p.fecha_pago) = $${params.length}`);
+      where.push(`EXTRACT(YEAR FROM p.fecha_pago::date) = $${params.length}`);
     }
 
     if (mes) {
       params.push(mes);
-      where.push(`EXTRACT(MONTH FROM p.fecha_pago) = $${params.length}`);
+      where.push(`EXTRACT(MONTH FROM p.fecha_pago::date) = $${params.length}`);
     }
 
     if (dia) {
       params.push(dia);
-      where.push(`EXTRACT(DAY FROM p.fecha_pago) = $${params.length}`);
+      where.push(`EXTRACT(DAY FROM p.fecha_pago::date) = $${params.length}`);
     }
 
     const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
@@ -251,31 +256,34 @@ app.get('/dashboard', async (req, res) => {
       'SELECT COUNT(*) AS total FROM clientes'
     );
 
+    // MOROSOS BASADOS EN VENCIMIENTO REAL
     const morososResult = await db.query(`
       SELECT c.id
       FROM clientes c
       LEFT JOIN pagos p ON c.id = p.cliente_id
-      WHERE c.tipo = 'mensual'
       GROUP BY c.id
-      HAVING MAX(p.fecha_pago) IS NULL
-         OR CURRENT_DATE - MAX(p.fecha_pago) > 27
+      HAVING 
+        MAX(
+          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+        ) IS NULL
+        OR MAX(
+          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+        ) < CURRENT_DATE
     `);
 
     const ingresosMesResult = await db.query(`
       SELECT SUM(monto) AS total
       FROM pagos
-      WHERE fecha_pago >= DATE_TRUNC('month', CURRENT_DATE)
-      AND fecha_pago < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+      WHERE fecha_pago::date >= DATE_TRUNC('month', CURRENT_DATE)::date
+        AND fecha_pago::date < (DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month')::date
     `);
-
 
     const ingresosAnioResult = await db.query(`
       SELECT SUM(monto) AS total
       FROM pagos
-      WHERE fecha_pago >= DATE_TRUNC('year', CURRENT_DATE)
-      AND fecha_pago < DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year'
+      WHERE fecha_pago::date >= DATE_TRUNC('year', CURRENT_DATE)::date
+        AND fecha_pago::date < (DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year')::date
     `);
-
 
     res.json({
       totalClientes: clientesResult.rows[0].total,
@@ -309,7 +317,8 @@ app.get('/recordatorios', async (req, res) => {
       FROM clientes c
       JOIN pagos p ON c.id = p.cliente_id
       WHERE 
-        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date = CURRENT_DATE
+        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date = 
+        (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date
       ORDER BY c.nombre
     `);
 
@@ -321,7 +330,6 @@ app.get('/recordatorios', async (req, res) => {
     });
   }
 });
-
 
 // ===============================
 // LOGIN SIMPLE (TEMPORAL)
