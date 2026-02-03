@@ -107,9 +107,14 @@ app.post('/pagos', async (req, res) => {
   try {
     await db.query(`
   INSERT INTO pagos (cliente_id, fecha_pago, monto, medio_pago, dias_pagados)
-  VALUES ($1, CURRENT_DATE, $2, $3, $4)
+  VALUES (
+    $1, 
+    (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date, 
+    $2, 
+    $3, 
+    $4
+  )
 `, [cliente_id, monto, medio_pago, dias_pagados]);
-
 
     res.json({ mensaje: 'Pago registrado con vencimiento automático ✅' });
 
@@ -134,7 +139,7 @@ app.get('/clientes/:id/pagos', async (req, res) => {
         monto,
         dias_pagados,
         medio_pago,
-        (fecha_pago + (dias_pagados || ' days')::interval)::date AS vencimiento
+        (fecha_pago + dias_pagados) AS vencimiento
       FROM pagos
       WHERE cliente_id = $1
       ORDER BY fecha_pago DESC
