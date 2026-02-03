@@ -220,7 +220,7 @@ app.get('/clientes/:id/pagos', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES MOROSOS
+// CLIENTES MOROSOS (MISMA LOGICA DASHBOARD)
 // ===============================
 app.get('/clientes-morosos', async (req, res) => {
   try {
@@ -242,17 +242,20 @@ app.get('/clientes-morosos', async (req, res) => {
         AND me.fecha_envio = CURRENT_DATE
       WHERE c.tipo = 'mensual'
       GROUP BY c.id, me.id
-      HAVING MAX(p.fecha_pago) IS NULL
-         OR CURRENT_DATE - MAX(p.fecha_pago) > 27
+      HAVING 
+        MAX(p.fecha_pago) IS NULL
+        OR CURRENT_DATE > MAX(p.fecha_pago) + INTERVAL '30 days'
       ORDER BY c.nombre
     `);
 
     res.json(result.rows);
 
   } catch (error) {
+    console.error('Error clientes morosos:', error);
     res.status(500).json({ mensaje: error.message });
   }
 });
+
 
 // ===============================
 // MARCAR MOROSO COMO NOTIFICADO
