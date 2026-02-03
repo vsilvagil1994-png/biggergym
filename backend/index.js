@@ -157,7 +157,7 @@ app.get('/clientes/:id/pagos', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES MOROSOS
+// CLIENTES MOROSOS (POR FECHA DE VENCIMIENTO REAL)
 // ===============================
 app.get('/clientes-morosos', async (req, res) => {
   try {
@@ -167,21 +167,24 @@ app.get('/clientes-morosos', async (req, res) => {
         c.nombre,
         c.telefono,
         c.tipo,
-        MAX(p.fecha_pago)::date AS ultimo_pago
+        MAX(
+          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+        ) AS fecha_vencimiento
       FROM clientes c
       LEFT JOIN pagos p ON c.id = p.cliente_id
-      WHERE c.tipo = 'mensual'
       GROUP BY c.id
       HAVING 
-        MAX(p.fecha_pago) IS NULL
-        OR 
-        (
-          (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date 
-          - MAX(p.fecha_pago)::date
-        ) > 1
+        MAX(
+          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+        ) IS NULL
+        OR MAX(
+          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+        ) < CURRENT_DATE
+      ORDER BY c.nombre
     `);
 
     res.json(result.rows);
+
   } catch (error) {
     res.status(500).json({ mensaje: error.message });
   }
@@ -301,33 +304,35 @@ app.get('/dashboard', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES PARA RECORDATORIO (HOY)
+// CLIENTES MOROSOS (ROBUSTO)
 // ===============================
-app.get('/recordatorios', async (req, res) => {
+app.get('/clientes-morosos', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
         c.id,
         c.nombre,
         c.telefono,
-        c.tipo,
-        p.fecha_pago,
-        p.dias_pagados,
-        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento
+        MAX(
+          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+        ) AS fecha_vencimiento
       FROM clientes c
-      JOIN pagos p ON c.id = p.cliente_id
-      WHERE 
-        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date = 
-        (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date
-      ORDER BY c.nombre
+      LEFT JOIN pagos p ON c.id = p.cliente_id
+      GROUP BY c.id
+      HAVING 
+        MAX(
+          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+        ) < CURRENT_DATE
+        OR MAX(
+          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+        ) IS NULL
+      ORDER BY fecha_vencimiento ASC NULLS FIRST
     `);
 
     res.json(result.rows);
   } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al obtener recordatorios',
-      error: error.message
-    });
+    console.error('Error morosos:', error);
+    res.status(500).json({ mensaje: error.message });
   }
 });
 

@@ -292,10 +292,12 @@ async function verMorosos() {
 
   data.forEach(c => {
     const li = document.createElement('li');
-    li.textContent = `${c.nombre} - ${c.telefono}`;
+    li.textContent = 
+      `⚠️ ${c.nombre} - ${c.telefono} | Venció: ${c.fecha_vencimiento || 'Sin pagos'}`;
     lista.appendChild(li);
   });
 }
+
 
 // ===============================
 // REPORTE DE INGRESOS
