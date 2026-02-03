@@ -127,6 +127,41 @@ app.post('/pagos', async (req, res) => {
 });
 
 // ===============================
+// RECORDATORIOS PROXIMOS HOY + DOS DÍAS
+// ===============================
+
+app.get('/recordatorios', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        c.id,
+        c.nombre,
+        c.telefono,
+        c.tipo,
+        p.fecha_pago,
+        p.dias_pagados,
+        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento
+      FROM clientes c
+      JOIN pagos p ON c.id = p.cliente_id
+      WHERE 
+        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date 
+        BETWEEN CURRENT_DATE 
+        AND CURRENT_DATE + INTERVAL '2 days'
+      ORDER BY fecha_vencimiento ASC
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error recordatorios:', error);
+    res.status(500).json({
+      mensaje: 'Error al obtener recordatorios',
+      error: error.message
+    });
+  }
+});
+
+
+// ===============================
 // HISTORIAL DE PAGOS POR CLIENTE
 // ===============================
 app.get('/clientes/:id/pagos', async (req, res) => {
@@ -157,7 +192,7 @@ app.get('/clientes/:id/pagos', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES MOROSOS (POR FECHA DE VENCIMIENTO REAL)
+// CLIENTES MOROSOS (ROBUSTO)
 // ===============================
 app.get('/clientes-morosos', async (req, res) => {
   try {
@@ -166,7 +201,6 @@ app.get('/clientes-morosos', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        c.tipo,
         MAX(
           (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
         ) AS fecha_vencimiento
@@ -176,16 +210,16 @@ app.get('/clientes-morosos', async (req, res) => {
       HAVING 
         MAX(
           (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
-        ) IS NULL
+        ) < CURRENT_DATE
         OR MAX(
           (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
-        ) < CURRENT_DATE
-      ORDER BY c.nombre
+        ) IS NULL
+      ORDER BY fecha_vencimiento ASC NULLS FIRST
     `);
 
     res.json(result.rows);
-
   } catch (error) {
+    console.error('Error morosos:', error);
     res.status(500).json({ mensaje: error.message });
   }
 });
@@ -300,39 +334,6 @@ app.get('/dashboard', async (req, res) => {
       mensaje: 'Error al cargar dashboard',
       error: error.message
     });
-  }
-});
-
-// ===============================
-// CLIENTES MOROSOS (ROBUSTO)
-// ===============================
-app.get('/clientes-morosos', async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT 
-        c.id,
-        c.nombre,
-        c.telefono,
-        MAX(
-          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
-        ) AS fecha_vencimiento
-      FROM clientes c
-      LEFT JOIN pagos p ON c.id = p.cliente_id
-      GROUP BY c.id
-      HAVING 
-        MAX(
-          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
-        ) < CURRENT_DATE
-        OR MAX(
-          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
-        ) IS NULL
-      ORDER BY fecha_vencimiento ASC NULLS FIRST
-    `);
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error morosos:', error);
-    res.status(500).json({ mensaje: error.message });
   }
 });
 
