@@ -396,8 +396,6 @@ async function verRecordatorios() {
   const res = await fetch(`${API}/recordatorios`);
   const data = await res.json();
 
-  console.log('DEBUG recordatorios:', data);
-
   const contenedor = document.getElementById('listaRecordatorios');
   contenedor.innerHTML = '';
 
@@ -407,13 +405,9 @@ async function verRecordatorios() {
   }
 
   data.forEach(c => {
-
     const fechaVence = new Date(c.fecha_vencimiento)
-      .toLocaleDateString('es-CO', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
+      .toISOString()
+      .split('T')[0];
 
     const div = document.createElement('div');
     div.style.border = '1px solid #ccc';
@@ -421,19 +415,52 @@ async function verRecordatorios() {
     div.style.marginBottom = '6px';
     div.style.borderRadius = '6px';
 
+    const btn = document.createElement('button');
+
+    if (c.ya_enviado) {
+      btn.textContent = 'Enviado ✅';
+      btn.style.background = 'green';
+      btn.style.color = 'white';
+      btn.disabled = true;
+    } else {
+      btn.textContent = 'Enviar WhatsApp';
+      btn.style.background = 'red';
+      btn.style.color = 'white';
+
+      btn.onclick = async () => {
+        const mensaje = `Hola ${c.nombre} 👋
+Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
+¡Te esperamos! 💪`;
+
+        const telLimpio = c.telefono.replace(/\D/g, '');
+        const url = `https://wa.me/57${telLimpio}?text=${encodeURIComponent(mensaje)}`;
+
+        window.open(url, '_blank');
+
+        // Guardar como enviado en backend
+        await fetch(`${API}/recordatorios/enviado`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cliente_id: c.id,
+            fecha_vencimiento: c.fecha_vencimiento
+          })
+        });
+
+        // Cambiar botón en pantalla
+        btn.textContent = 'Enviado ✅';
+        btn.style.background = 'green';
+        btn.disabled = true;
+      };
+    }
+
     div.innerHTML = `
       <strong>${c.nombre}</strong><br>
       📞 ${c.telefono}<br>
       ⏳ Vence: ${fechaVence}<br>
-      <button 
-        id="btn-${c.id}" 
-        style="background:red;color:white;padding:6px;border:none;border-radius:4px;cursor:pointer"
-        onclick="enviarWhatsApp(${c.id}, '${c.telefono}', '${c.nombre}', '${fechaVence}')"
-      >
-        Enviar WhatsApp
-      </button>
     `;
 
+    div.appendChild(btn);
     contenedor.appendChild(div);
   });
 }
