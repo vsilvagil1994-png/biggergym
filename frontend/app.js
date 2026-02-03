@@ -441,7 +441,7 @@ async function verRecordatorios() {
 // ===============================
 // ENVIAR WHATSAPP INDIVIDUAL
 // ===============================
-function enviarWhatsApp(id, telefono, nombre, fechaVence) {
+async function enviarWhatsApp(id, telefono, nombre, fechaVence) {
   const mensaje = `Hola ${nombre} 👋
 Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
 ¡Te esperamos! 💪`;
@@ -449,14 +449,31 @@ Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
   const telLimpio = telefono.replace(/\D/g, '');
   const url = `https://wa.me/57${telLimpio}?text=${encodeURIComponent(mensaje)}`;
 
+  // Abrir WhatsApp
   window.open(url, '_blank');
 
-  // Cambiar color del botón a verde
+  // Referencia al botón EXISTENTE
   const btn = document.getElementById(`btn-${id}`);
-  if (btn) {
+
+  // Guardar como enviado en backend
+  try {
+    await fetch(`${API}/recordatorios/enviado`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cliente_id: id,
+        fecha_vencimiento: fechaVence
+      })
+    });
+
+    // Cambiar botón en pantalla
+    btn.textContent = 'Enviado ✅';
     btn.style.background = 'green';
-    btn.textContent = 'Enviado ✔️';
     btn.disabled = true;
+
+  } catch (error) {
+    console.error('Error guardando recordatorio como enviado:', error);
+    alert('Error al marcar como enviado');
   }
 }
 

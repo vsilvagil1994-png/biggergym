@@ -288,3 +288,12 @@ ul li:hover {
 .btn-logout:hover {
   background: #ff0000;
 }
+
+/* =========================
+   LISTAS CON SCROLL (RECORDATORIOS Y MOROSOS)
+========================= */
+#listaRecordatorios,
+#listaMorosos {
+  max-height: 200px;
+  overflow-y: auto;
+}

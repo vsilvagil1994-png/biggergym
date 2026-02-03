@@ -137,12 +137,19 @@ app.get('/recordatorios', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        c.tipo,
         p.fecha_pago,
         p.dias_pagados,
-        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento
+        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento,
+        CASE 
+          WHEN r.id IS NOT NULL THEN true
+          ELSE false
+        END AS ya_enviado
       FROM clientes c
       JOIN pagos p ON c.id = p.cliente_id
+      LEFT JOIN recordatorios_enviados r 
+        ON r.cliente_id = c.id 
+       AND r.fecha_vencimiento = 
+           (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
       WHERE 
         (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date 
         BETWEEN CURRENT_DATE 
@@ -153,10 +160,27 @@ app.get('/recordatorios', async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Error recordatorios:', error);
-    res.status(500).json({
-      mensaje: 'Error al obtener recordatorios',
-      error: error.message
-    });
+    res.status(500).json({ mensaje: 'Error al obtener recordatorios' });
+  }
+});
+
+// ===============================
+// RECORDATORIOS MARCAR COMO ENVIADO
+// ===============================
+
+app.post('/recordatorios/enviado', async (req, res) => {
+  const { cliente_id, fecha_vencimiento } = req.body;
+
+  try {
+    await db.query(`
+      INSERT INTO recordatorios_enviados (cliente_id, fecha_vencimiento)
+      VALUES ($1, $2)
+      ON CONFLICT DO NOTHING
+    `, [cliente_id, fecha_vencimiento]);
+
+    res.json({ mensaje: 'Recordatorio marcado como enviado' });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al marcar enviado' });
   }
 });
 
