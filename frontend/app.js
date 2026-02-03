@@ -271,8 +271,9 @@ async function cargarHistorialPagos(clienteId) {
 
 function formatearFecha(fecha) {
   if (!fecha) return '—';
-  return new Date(fecha).toISOString().split('T')[0];
+  return fecha.toString().substring(0, 10);
 }
+
 
 // ===============================
 // CLIENTES MOROSOS
