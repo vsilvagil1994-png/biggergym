@@ -220,7 +220,7 @@ app.get('/clientes/:id/pagos', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES MOROSOS (LOGICA REAL + SIN PAGOS)
+// CLIENTES MOROSOS (SOLO SIN PAGOS - DEBUG)
 // ===============================
 app.get('/clientes-morosos', async (req, res) => {
   try {
@@ -229,40 +229,11 @@ app.get('/clientes-morosos', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        c.tipo,
-
-        MAX(p.fecha_pago) AS ultimo_pago,
-
-        -- Fecha real de vencimiento
-        MAX(p.fecha_pago + (p.dias_pagados || ' days')::interval) AS fecha_vence,
-
-        CASE 
-          WHEN me.id IS NOT NULL THEN true
-          ELSE false
-        END AS ya_enviado
-
+        c.tipo
       FROM clientes c
-
-      LEFT JOIN pagos p 
-        ON c.id = p.cliente_id
-
-      LEFT JOIN morosos_enviados me 
-        ON me.cliente_id = c.id
-        AND me.fecha_envio = CURRENT_DATE
-
+      LEFT JOIN pagos p ON c.id = p.cliente_id
       WHERE c.tipo = 'mensual'
-
-      GROUP BY c.id, me.id
-
-      HAVING 
-        -- Caso 1: Nunca ha pagado
-        MAX(p.fecha_pago) IS NULL
-
-        OR
-
-        -- Caso 2: Tiene pagos pero está vencido
-        CURRENT_DATE > MAX(p.fecha_pago + (p.dias_pagados || ' days')::interval)
-
+        AND p.id IS NULL
       ORDER BY c.nombre
     `);
 
@@ -273,6 +244,7 @@ app.get('/clientes-morosos', async (req, res) => {
     res.status(500).json({ mensaje: error.message });
   }
 });
+
 
 // ===============================
 // MARCAR MOROSO COMO NOTIFICADO
