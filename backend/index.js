@@ -220,7 +220,7 @@ app.get('/clientes/:id/pagos', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES MOROSOS (SOLO SIN PAGOS - DEBUG)
+// CLIENTES MOROSOS (LOGICA SIMPLE Y REAL)
 // ===============================
 app.get('/clientes-morosos', async (req, res) => {
   try {
@@ -229,11 +229,20 @@ app.get('/clientes-morosos', async (req, res) => {
         c.id,
         c.nombre,
         c.telefono,
-        c.tipo
+        MAX(p.fecha_pago) AS ultimo_pago,
+        CASE 
+          WHEN me.id IS NOT NULL THEN true
+          ELSE false
+        END AS ya_enviado
       FROM clientes c
       LEFT JOIN pagos p ON c.id = p.cliente_id
-      WHERE c.tipo = 'mensual'
-        AND p.id IS NULL
+      LEFT JOIN morosos_enviados me 
+        ON me.cliente_id = c.id
+        AND me.fecha_envio = CURRENT_DATE
+      GROUP BY c.id, me.id
+      HAVING 
+        MAX(p.fecha_pago) IS NULL
+        OR CURRENT_DATE - MAX(p.fecha_pago) > 27
       ORDER BY c.nombre
     `);
 
