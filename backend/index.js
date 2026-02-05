@@ -129,39 +129,36 @@ app.post('/pagos', async (req, res) => {
 // ===============================
 // CLIENTES PARA RECORDATORIO (HOY)
 // ===============================
-app.get('/recordatorios', async (req, res) => {
+app.get('/recordatorios-hoy', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
         c.id,
         c.nombre,
         c.telefono,
-        c.tipo,
-        p.fecha_pago,
-        p.dias_pagados,
-        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento,
-        CASE 
-          WHEN re.id IS NOT NULL THEN true
-          ELSE false
-        END AS ya_enviado
+        lp.fecha_pago,
+        lp.dias_pagados,
+        (lp.fecha_pago + (lp.dias_pagados || ' days')::interval)::date AS fecha_vence
       FROM clientes c
-      JOIN pagos p ON c.id = p.cliente_id
-      LEFT JOIN recordatorios_enviados re 
-        ON re.cliente_id = c.id
-        AND re.fecha_vencimiento = 
-          (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date
+      JOIN LATERAL (
+        SELECT fecha_pago, dias_pagados
+        FROM pagos
+        WHERE cliente_id = c.id
+        ORDER BY fecha_pago DESC
+        LIMIT 1
+      ) lp ON true
       WHERE 
-        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date = CURRENT_DATE
+        (lp.fecha_pago + (lp.dias_pagados || ' days')::interval)::date 
+        BETWEEN CURRENT_DATE - INTERVAL '1 day'
+        AND CURRENT_DATE + INTERVAL '1 day'
       ORDER BY c.nombre
     `);
 
     res.json(result.rows);
 
   } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al obtener recordatorios',
-      error: error.message
-    });
+    console.error('Error recordatorios hoy:', error);
+    res.status(500).json({ mensaje: error.message });
   }
 });
 
