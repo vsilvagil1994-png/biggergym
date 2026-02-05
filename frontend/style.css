@@ -297,3 +297,42 @@ ul li:hover {
   max-height: 200px;
   overflow-y: auto;
 }
+
+/* =========================
+   SCROLL - RECORDATORIOS Y MOROSOS (LISTAS)
+========================= */
+#listaRecordatorios,
+#listaMorosos {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* =========================
+   SCROLL - HISTORIAL DE PAGOS
+========================= */
+#historialPagos {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* =========================
+   SCROLL - ESTADO GENERAL DE CLIENTES (TABLA)
+========================= */
+#tablaEstadoClientes {
+  min-width: 700px;   /* Fuerza scroll horizontal si es necesario */
+}
+
+#tablaEstadoClientes tbody {
+  display: block;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+#tablaEstadoClientes thead,
+#tablaEstadoClientes tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}

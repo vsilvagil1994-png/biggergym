@@ -553,6 +553,48 @@ Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
 }
 
 // ===============================
+// VER ESTADO GENERAL DE CLIENTES
+// ===============================
+async function verEstadoClientes() {
+  const res = await fetch(`${API}/estado-clientes`);
+  const data = await res.json();
+
+  const tbody = document.querySelector('#tablaEstadoClientes tbody');
+  tbody.innerHTML = '';
+
+  data.forEach(c => {
+    const tr = document.createElement('tr');
+
+    const ultimoPago = c.ultimo_pago
+      ? new Date(c.ultimo_pago).toLocaleDateString('es-CO')
+      : '';
+
+    const fechaVence = c.fecha_vence
+      ? new Date(c.fecha_vence).toLocaleDateString('es-CO')
+      : '';
+
+    let colorEstado = '#ccc';
+    if (c.estado === 'Activo') colorEstado = 'lime';
+    if (c.estado === 'Inactivo') colorEstado = 'red';
+    if (c.estado === 'Regular') colorEstado = 'deepskyblue';
+
+    tr.innerHTML = `
+      <td>${c.nombre}</td>
+      <td>${c.telefono}</td>
+      <td>${c.tipo}</td>
+      <td>${ultimoPago}</td>
+      <td>${fechaVence}</td>
+      <td style="color:${colorEstado}; font-weight:bold">
+        ${c.estado}
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+
+// ===============================
 // HELPERS
 // ===============================
 function limpiarFormulario() {
