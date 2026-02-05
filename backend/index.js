@@ -410,44 +410,6 @@ app.post('/login', (req, res) => {
 });
 
 // ===============================
-// ESTADO GENERAL DE CLIENTES
-// ===============================
-app.get('/estado-clientes', async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT 
-        c.id,
-        c.nombre,
-        c.telefono,
-        c.tipo,
-        MAX(p.fecha_pago) AS ultimo_pago,
-        MAX(p.fecha_pago + (p.dias_pagados || ' days')::interval) AS fecha_vence,
-        CASE
-          WHEN MAX(p.fecha_pago) IS NULL THEN 'Sin pagos'
-          WHEN c.tipo = 'mensual' 
-               AND CURRENT_DATE <= MAX(p.fecha_pago + (p.dias_pagados || ' days')::interval)
-            THEN 'Activo'
-          WHEN c.tipo = 'mensual' 
-               AND CURRENT_DATE > MAX(p.fecha_pago + (p.dias_pagados || ' days')::interval)
-            THEN 'Inactivo'
-          WHEN c.tipo <> 'mensual' THEN 'Regular'
-          ELSE 'Sin definir'
-        END AS estado
-      FROM clientes c
-      LEFT JOIN pagos p ON c.id = p.cliente_id
-      GROUP BY c.id
-      ORDER BY c.nombre
-    `);
-
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error('Error estado clientes:', error);
-    res.status(500).json({ mensaje: error.message });
-  }
-});
-
-// ===============================
 // FIN DE RUTAS
 // ===============================
 
