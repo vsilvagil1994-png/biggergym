@@ -441,76 +441,110 @@ async function cargarDashboard() {
 // MOSTRAR LISTA DE RECORDATORIOS
 // ===============================
 async function verRecordatorios() {
-  const res = await fetch(`${API}/recordatorios`);
-  const data = await res.json();
+  try {
+    const contenedor = document.getElementById('listaRecordatorios');
 
-  const contenedor = document.getElementById('listaRecordatorios');
-  contenedor.innerHTML = '';
+    if (!contenedor) {
+      console.error('❌ No existe el elemento #listaRecordatorios en el HTML');
+      return;
+    }
 
-  if (data.length === 0) {
-    contenedor.innerHTML = '<p>😊 Hoy no hay recordatorios</p>';
-    return;
-  }
+    contenedor.innerHTML = '<p>Cargando recordatorios...</p>';
 
-  data.forEach(c => {
-    const fechaVence = new Date(c.fecha_vencimiento)
-      .toISOString()
-      .split('T')[0];
+    const res = await fetch(`${API}/recordatorios`);
 
-    const div = document.createElement('div');
-    div.style.border = '1px solid #ccc';
-    div.style.padding = '8px';
-    div.style.marginBottom = '6px';
-    div.style.borderRadius = '6px';
+    if (!res.ok) {
+      throw new Error('Respuesta HTTP inválida');
+    }
 
-    const btn = document.createElement('button');
+    const data = await res.json();
 
-    if (c.ya_enviado) {
-      btn.textContent = 'Enviado ✅';
-      btn.style.background = 'green';
-      btn.style.color = 'white';
-      btn.disabled = true;
-    } else {
-      btn.textContent = 'Enviar WhatsApp';
-      btn.style.background = 'red';
-      btn.style.color = 'white';
+    console.log('DEBUG recordatorios:', data);
 
-      btn.onclick = async () => {
-        const mensaje = `Hola ${c.nombre} 👋
+    contenedor.innerHTML = '';
+
+    if (!Array.isArray(data) || data.length === 0) {
+      contenedor.innerHTML = '<p>😊 Hoy no hay recordatorios</p>';
+      return;
+    }
+
+    data.forEach(c => {
+      if (!c.fecha_vencimiento) {
+        console.warn('⚠️ Registro sin fecha_vencimiento:', c);
+        return;
+      }
+
+      let fechaVence = '—';
+      try {
+        fechaVence = new Date(c.fecha_vencimiento)
+          .toISOString()
+          .split('T')[0];
+      } catch (e) {
+        console.error('❌ Error formateando fecha:', c.fecha_vencimiento);
+      }
+
+      const div = document.createElement('div');
+      div.style.border = '1px solid #ccc';
+      div.style.padding = '8px';
+      div.style.marginBottom = '6px';
+      div.style.borderRadius = '6px';
+
+      const btn = document.createElement('button');
+
+      if (c.ya_enviado) {
+        btn.textContent = 'Enviado ✅';
+        btn.style.background = 'green';
+        btn.style.color = 'white';
+        btn.disabled = true;
+      } else {
+        btn.textContent = 'Enviar WhatsApp';
+        btn.style.background = 'red';
+        btn.style.color = 'white';
+
+        btn.onclick = async () => {
+          const mensaje = `Hola ${c.nombre} 👋
 Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
 ¡Te esperamos! 💪`;
 
-        const telLimpio = c.telefono.replace(/\D/g, '');
-        const url = `https://wa.me/57${telLimpio}?text=${encodeURIComponent(mensaje)}`;
+          const telLimpio = (c.telefono || '').replace(/\D/g, '');
+          const url = `https://wa.me/57${telLimpio}?text=${encodeURIComponent(mensaje)}`;
 
-        window.open(url, '_blank');
+          window.open(url, '_blank');
 
-        // Guardar como enviado en backend
-        await fetch(`${API}/recordatorios/enviado`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cliente_id: c.id,
-            fecha_vencimiento: c.fecha_vencimiento
-          })
-        });
+          // Guardar como enviado en backend
+          await fetch(`${API}/recordatorios/enviado`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cliente_id: c.id,
+              fecha_vencimiento: c.fecha_vencimiento
+            })
+          });
 
-        // Cambiar botón en pantalla
-        btn.textContent = 'Enviado ✅';
-        btn.style.background = 'green';
-        btn.disabled = true;
-      };
+          // Cambiar botón en pantalla
+          btn.textContent = 'Enviado ✅';
+          btn.style.background = 'green';
+          btn.disabled = true;
+        };
+      }
+
+      div.innerHTML = `
+        <strong>${c.nombre || 'Sin nombre'}</strong><br>
+        📞 ${c.telefono || 'Sin teléfono'}<br>
+        ⏳ Vence: ${fechaVence}<br>
+      `;
+
+      div.appendChild(btn);
+      contenedor.appendChild(div);
+    });
+
+  } catch (error) {
+    console.error('❌ Error en verRecordatorios():', error);
+    const contenedor = document.getElementById('listaRecordatorios');
+    if (contenedor) {
+      contenedor.innerHTML = '<p style="color:red">Error cargando recordatorios</p>';
     }
-
-    div.innerHTML = `
-      <strong>${c.nombre}</strong><br>
-      📞 ${c.telefono}<br>
-      ⏳ Vence: ${fechaVence}<br>
-    `;
-
-    div.appendChild(btn);
-    contenedor.appendChild(div);
-  });
+  }
 }
 
 // ===============================

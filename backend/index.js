@@ -127,40 +127,36 @@ app.post('/pagos', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES PARA RECORDATORIO (HOY)
+// CLIENTES PARA RECORDATORIO (HOY) — VERSION SIMPLE Y ESTABLE
 // ===============================
-app.get('/recordatorios-hoy', async (req, res) => {
+app.get('/recordatorios', async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT 
+      SELECT DISTINCT ON (c.id)
         c.id,
         c.nombre,
         c.telefono,
-        lp.fecha_pago,
-        lp.dias_pagados,
-        (lp.fecha_pago + (lp.dias_pagados || ' days')::interval)::date AS fecha_vence
+        p.fecha_pago,
+        p.dias_pagados,
+        (p.fecha_pago + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento
       FROM clientes c
-      JOIN LATERAL (
-        SELECT fecha_pago, dias_pagados
-        FROM pagos
-        WHERE cliente_id = c.id
-        ORDER BY fecha_pago DESC
-        LIMIT 1
-      ) lp ON true
+      JOIN pagos p ON c.id = p.cliente_id
       WHERE 
-        (lp.fecha_pago + (lp.dias_pagados || ' days')::interval)::date 
-        BETWEEN CURRENT_DATE - INTERVAL '1 day'
-        AND CURRENT_DATE + INTERVAL '1 day'
-      ORDER BY c.nombre
+        (p.fecha_pago + (p.dias_pagados || ' days')::interval)::date = CURRENT_DATE
+      ORDER BY c.id, p.fecha_pago DESC
     `);
 
     res.json(result.rows);
 
   } catch (error) {
-    console.error('Error recordatorios hoy:', error);
-    res.status(500).json({ mensaje: error.message });
+    console.error('❌ Error recordatorios:', error);
+    res.status(500).json({
+      mensaje: 'Error al obtener recordatorios',
+      error: error.message
+    });
   }
 });
+
 
 // ===============================
 // MARCAR RECORDATORIO COMO ENVIADO
@@ -425,42 +421,6 @@ app.get('/test-db', async (req, res) => {
       ok: false,
       error: error.message
     });
-  }
-});
-
-// ===============================
-// DEBUG FECHAS Y VENCIMIENTOS
-// ===============================
-app.get('/debug-fechas', async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT 
-        c.id,
-        c.nombre,
-        c.tipo,
-        p.fecha_pago,
-        p.dias_pagados,
-        (p.fecha_pago::date + (p.dias_pagados || ' days')::interval)::date AS vencimiento_calculado
-      FROM clientes c
-      JOIN pagos p ON c.id = p.cliente_id
-      ORDER BY vencimiento_calculado DESC
-    `);
-
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ===============================
-// DEBUG FECHA DEL SERVIDOR
-// ===============================
-app.get('/debug-hoy', async (req, res) => {
-  try {
-    const result = await db.query(`SELECT CURRENT_DATE, NOW()`);
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
   }
 });
 
