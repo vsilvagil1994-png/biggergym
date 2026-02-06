@@ -127,33 +127,44 @@ app.post('/pagos', async (req, res) => {
 });
 
 // ===============================
-// CLIENTES PARA RECORDATORIO (HOY) — VERSION SIMPLE Y ESTABLE
+// RECORDATORIOS DE HOY (CORRECTO)
 // ===============================
 app.get('/recordatorios', async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT DISTINCT ON (c.id)
+      SELECT 
         c.id,
         c.nombre,
         c.telefono,
         p.fecha_pago,
         p.dias_pagados,
-        (p.fecha_pago + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento
-      FROM clientes c
-      JOIN pagos p ON c.id = p.cliente_id
+        (p.fecha_pago + (p.dias_pagados || ' days')::interval)::date AS fecha_vencimiento,
+
+        CASE 
+          WHEN re.id IS NOT NULL THEN true
+          ELSE false
+        END AS ya_enviado
+
+      FROM pagos p
+      JOIN clientes c ON c.id = p.cliente_id
+
+      LEFT JOIN recordatorios_enviados re
+        ON re.cliente_id = c.id
+        AND re.fecha_vencimiento = 
+          (p.fecha_pago + (p.dias_pagados || ' days')::interval)::date
+        AND re.fecha_envio = CURRENT_DATE
+
       WHERE 
         (p.fecha_pago + (p.dias_pagados || ' days')::interval)::date = CURRENT_DATE
-      ORDER BY c.id, p.fecha_pago DESC
+
+      ORDER BY c.nombre;
     `);
 
     res.json(result.rows);
 
   } catch (error) {
-    console.error('❌ Error recordatorios:', error);
-    res.status(500).json({
-      mensaje: 'Error al obtener recordatorios',
-      error: error.message
-    });
+    console.error('Error recordatorios:', error);
+    res.status(500).json({ mensaje: error.message });
   }
 });
 
@@ -162,25 +173,24 @@ app.get('/recordatorios', async (req, res) => {
 // MARCAR RECORDATORIO COMO ENVIADO
 // ===============================
 app.post('/recordatorios/enviado', async (req, res) => {
-  const { cliente_id, fecha_vencimiento } = req.body;
-
+  
   try {
+    const { cliente_id, fecha_vencimiento } = req.body;
+
     await db.query(`
-      INSERT INTO recordatorios_enviados (cliente_id, fecha_vencimiento, enviado)
-      VALUES ($1, $2, true)
-      ON CONFLICT DO NOTHING
+      INSERT INTO recordatorios_enviados 
+        (cliente_id, fecha_vencimiento, enviado, fecha_envio)
+      VALUES ($1, $2, true, CURRENT_DATE)
     `, [cliente_id, fecha_vencimiento]);
 
-    res.json({ mensaje: 'Recordatorio marcado como enviado ✅' });
+    res.json({ ok: true });
 
   } catch (error) {
-    console.error('Error marcar enviado:', error);
-    res.status(500).json({
-      mensaje: 'Error al marcar recordatorio como enviado',
-      error: error.message
-    });
+    console.error('Error guardando recordatorio:', error);
+    res.status(500).json({ mensaje: error.message });
   }
 });
+
 
 // ===============================
 // HISTORIAL DE PAGOS POR CLIENTE
