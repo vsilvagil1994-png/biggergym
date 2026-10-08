@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Bigger Gym - Acceso</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <link rel="stylesheet" href="style.css">
+
   <style>
     /* Estilos adicionales para mejorar la interfaz y los formularios */
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
@@ -16,19 +20,22 @@
       margin: 0;
       background: rgba(0, 0, 0, 0.6);
     }
+
     .card {
       background: #1a1a1a;
       color: #fff;
       padding: 30px;
       border-radius: 12px;
       width: 320px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
       text-align: center;
     }
+
     .card h2 {
       margin-bottom: 20px;
       color: #ffd700;
     }
+
     .card input {
       width: 100%;
       padding: 12px;
@@ -39,6 +46,7 @@
       color: #fff;
       box-sizing: border-box;
     }
+
     .card button {
       width: 100%;
       padding: 12px;
@@ -51,19 +59,25 @@
       cursor: pointer;
       transition: background 0.3s;
     }
+
     .card button:hover {
       background: #e6c200;
     }
-    .toggle-link, .forgot-link {
+
+    .toggle-link,
+    .forgot-link {
       margin-top: 15px;
       font-size: 13px;
       color: #aaa;
       cursor: pointer;
     }
-    .toggle-link span, .forgot-link span {
+
+    .toggle-link span,
+    .forgot-link span {
       color: #ffd700;
       text-decoration: underline;
     }
+
     .hidden {
       display: none;
     }
@@ -72,136 +86,434 @@
 
 <body>
 
-<div class="card">
-  <h2 id="tituloForm">🔐 Bigger Gym</h2>
+  <div class="card">
 
-  <!-- FORMULARIO DE LOGIN -->
-  <div id="seccionLogin">
-    <input type="text" id="usuarioLogin" placeholder="Usuario">
-    <input type="password" id="passwordLogin" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
-    <p id="errorLogin" style="color:#ff4d4d; font-size:13px; margin-top:10px;"></p>
-    
-    <div class="forgot-link" onclick="mostrarRecuperacion()">
-      ¿Olvidaste tu contraseña?
+    <h2 id="tituloForm">🔐 Bigger Gym</h2>
+
+    <!-- =============================== -->
+    <!-- FORMULARIO DE LOGIN -->
+    <!-- =============================== -->
+
+    <div id="seccionLogin">
+
+      <input
+        type="text"
+        id="usuarioLogin"
+        placeholder="Usuario"
+      >
+
+      <input
+        type="password"
+        id="passwordLogin"
+        placeholder="Contraseña"
+      >
+
+      <button onclick="login()">
+        Ingresar
+      </button>
+
+      <p
+        id="errorLogin"
+        style="color:#ff4d4d; font-size:13px; margin-top:10px;"
+      ></p>
+
+      <div
+        class="forgot-link"
+        onclick="mostrarRecuperacion()"
+      >
+        ¿Olvidaste tu contraseña?
+      </div>
+
+      <div class="toggle-link">
+        ¿No tienes cuenta?
+        <span onclick="cambiarVista('registro')">
+          Regístrate aquí
+        </span>
+      </div>
+
     </div>
-    <div class="toggle-link">
-      ¿No tienes cuenta? <span onclick="cambiarVista('registro').click();">Regístrate aquí</span>
+
+
+    <!-- =============================== -->
+    <!-- FORMULARIO DE REGISTRO -->
+    <!-- =============================== -->
+
+    <div id="seccionRegistro" class="hidden">
+
+      <input
+        type="text"
+        id="usuarioRegistro"
+        placeholder="Elige un Usuario"
+      >
+
+      <input
+        type="password"
+        id="passwordRegistro"
+        placeholder="Elige una Contraseña"
+      >
+
+      <button onclick="registrar()">
+        Crear Cuenta
+      </button>
+
+      <p
+        id="errorRegistro"
+        style="color:#ff4d4d; font-size:13px; margin-top:10px;"
+      ></p>
+
+      <div class="toggle-link">
+
+        ¿Ya tienes cuenta?
+
+        <span onclick="cambiarVista('login')">
+          Inicia sesión
+        </span>
+
+      </div>
+
     </div>
+
+
+    <!-- =============================== -->
+    <!-- FORMULARIO DE RECUPERACIÓN -->
+    <!-- =============================== -->
+
+    <div id="seccionRecuperar" class="hidden">
+
+      <p style="font-size: 13px; color: #ccc;">
+        Ingresa tu correo o usuario y te enviaremos instrucciones de recuperación.
+      </p>
+
+      <input
+        type="text"
+        id="usuarioRecuperar"
+        placeholder="Tu Usuario o Correo"
+      >
+
+      <button onclick="recuperarPassword()">
+        Enviar Instrucciones
+      </button>
+
+      <p
+        id="errorRecuperar"
+        style="color:#4dff4d; font-size:13px; margin-top:10px;"
+      ></p>
+
+      <div
+        class="toggle-link"
+        style="margin-top: 15px;"
+      >
+
+        <span onclick="cambiarVista('login')">
+          Volver al login
+        </span>
+
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- FORMULARIO DE REGISTRO -->
-  <div id="seccionRegistro" class="hidden">
-    <input type="text" id="usuarioRegistro" placeholder="Elige un Usuario">
-    <input type="password" id="passwordRegistro" placeholder="Elige una Contraseña">
-    <button onclick="registrar()">Crear Cuenta</button>
-    <p id="errorRegistro" style="color:#ff4d4d; font-size:13px; margin-top:10px;"></p>
-    
-    <div class="toggle-link">
-      ¿Ya tienes cuenta? <span onclick="cambiarVista('login')">Inicia sesión</span>
-    </div>
-  </div>
 
-  <!-- FORMULARIO DE RECUPERACIÓN -->
-  <div id="seccionRecuperar" class="hidden">
-    <p style="font-size: 13px; color: #ccc;">Ingresa tu correo o usuario y te enviaremos instrucciones de recuperación.</p>
-    <input type="text" id="usuarioRecuperar" placeholder="Tu Usuario o Correo">
-    <button onclick="recuperarPassword()">Enviar Instrucciones</button>
-    <p id="errorRecuperar" style="color:#4dff4d; font-size:13px; margin-top:10px;"></p>
-    
-    <div class="toggle-link" style="margin-top: 15px;">
-      <span onclick="cambiarVista('login')">Volver al login</span>
-    </div>
-  </div>
-</div>
+  <script>
 
-<script>
-  function cambiarVista(vista) {
-    document.getElementById('seccionLogin').classList.add('hidden');
-    document.getElementById('seccionRegistro').classList.add('hidden');
-    document.getElementById('seccionRecuperar').classList.add('hidden');
+    // ==========================================
+    // CAMBIAR ENTRE LOGIN, REGISTRO Y RECUPERAR
+    // ==========================================
 
-    if (vista === 'login') {
-      document.getElementById('tituloForm').textContent = '🔐 Bigger Gym';
-      document.getElementById('seccionLogin').classList.remove('hidden');
-    } else if (vista === 'registro') {
-      document.getElementById('tituloForm').textContent = '📝 Nuevo Registro';
-      document.getElementById('seccionRegistro').classList.remove('hidden');
-    } else if (vista === 'recuperar') {
-      document.getElementById('tituloForm').textContent = '🔄 Recuperar Clave';
-      document.getElementById('seccionRecuperar').classList.remove('hidden');
-    }
-  }
+    function cambiarVista(vista) {
 
-  function mostrarRecuperacion() {
-    cambiarVista('recuperar');
-  }
+      document
+        .getElementById('seccionLogin')
+        .classList.add('hidden');
 
-  async function login() {
-    const usuario = document.getElementById('usuarioLogin').value;
-    const password = document.getElementById('passwordLogin').value;
-    const error = document.getElementById('errorLogin');
-    error.textContent = '';
+      document
+        .getElementById('seccionRegistro')
+        .classList.add('hidden');
 
-    try {
-      const res = await fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, password })
-      });
+      document
+        .getElementById('seccionRecuperar')
+        .classList.add('hidden');
 
-      if (res.ok) {
-        localStorage.setItem('logeado', 'true');
-        window.location.href = 'index.html';
-      } else {
-        error.textContent = 'Usuario o contraseña incorrectos';
+
+      if (vista === 'login') {
+
+        document
+          .getElementById('tituloForm')
+          .textContent = '🔐 Bigger Gym';
+
+        document
+          .getElementById('seccionLogin')
+          .classList.remove('hidden');
+
       }
-    } catch (e) {
-      error.textContent = 'Error de conexión con el servidor';
-    }
-  }
 
-  async function registrar() {
-    const usuario = document.getElementById('usuarioRegistro').value;
-    const password = document.getElementById('passwordRegistro').value;
-    const error = document.getElementById('errorRegistro');
-    error.textContent = '';
 
-    if (!usuario || !password) {
-      error.textContent = 'Por favor completa todos los campos';
-      return;
-    }
+      else if (vista === 'registro') {
 
-    try {
-      const res = await fetch('/register', { // Asegúrate de crear esta ruta en tu backend (index.js)
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, password })
-      });
+        document
+          .getElementById('tituloForm')
+          .textContent = '📝 Nuevo Registro';
 
-      if (res.ok) {
-        alert('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.');
-        cambiarVista('login');
-      } else {
-        error.textContent = 'No se pudo registrar el usuario (tal vez ya exista)';
+        document
+          .getElementById('seccionRegistro')
+          .classList.remove('hidden');
+
       }
-    } catch (e) {
-      error.textContent = 'Error de conexión con el servidor';
-    }
-  }
 
-  function recuperarPassword() {
-    const dato = document.getElementById('usuarioRecuperar').value;
-    const mensaje = document.getElementById('errorRecuperar');
-    if (!dato) {
-      mensaje.style.color = '#ff4d4d';
-      mensaje.textContent = 'Ingresa un dato válido';
-      return;
+
+      else if (vista === 'recuperar') {
+
+        document
+          .getElementById('tituloForm')
+          .textContent = '🔄 Recuperar Clave';
+
+        document
+          .getElementById('seccionRecuperar')
+          .classList.remove('hidden');
+
+      }
+
     }
-    mensaje.style.color = '#4dff4d';
-    mensaje.textContent = 'Si el usuario existe, se han enviado instrucciones a su correo.';
-  }
-</script>
+
+
+    // ==========================================
+    // MOSTRAR RECUPERACIÓN
+    // ==========================================
+
+    function mostrarRecuperacion() {
+
+      cambiarVista('recuperar');
+
+    }
+
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
+
+    async function login() {
+
+      const usuario =
+        document.getElementById('usuarioLogin').value.trim();
+
+      const password =
+        document.getElementById('passwordLogin').value;
+
+      const error =
+        document.getElementById('errorLogin');
+
+
+      error.textContent = '';
+
+
+      if (!usuario || !password) {
+
+        error.textContent =
+          'Por favor ingresa usuario y contraseña.';
+
+        return;
+      }
+
+
+      try {
+
+        const res = await fetch('/login', {
+
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json'
+          },
+
+          body: JSON.stringify({
+            usuario: usuario,
+            password: password
+          })
+
+        });
+
+
+        if (res.ok) {
+
+          const datos = await res.json();
+
+          localStorage.setItem('logeado', 'true');
+
+          localStorage.setItem(
+            'usuario',
+            datos.usuario || usuario
+          );
+
+          window.location.href = 'index.html';
+
+        }
+
+        else {
+
+          error.textContent =
+            'Usuario o contraseña incorrectos';
+
+        }
+
+      }
+
+      catch (e) {
+
+        console.error(e);
+
+        error.textContent =
+          'Error de conexión con el servidor';
+
+      }
+
+    }
+
+
+    // ==========================================
+    // REGISTRAR USUARIO
+    // ==========================================
+
+    async function registrar() {
+
+      const usuario =
+        document.getElementById('usuarioRegistro').value.trim();
+
+      const password =
+        document.getElementById('passwordRegistro').value;
+
+      const error =
+        document.getElementById('errorRegistro');
+
+
+      error.textContent = '';
+
+
+      if (!usuario || !password) {
+
+        error.textContent =
+          'Por favor completa todos los campos';
+
+        return;
+
+      }
+
+
+      if (usuario.length < 3) {
+
+        error.textContent =
+          'El usuario debe tener al menos 3 caracteres';
+
+        return;
+
+      }
+
+
+      if (password.length < 4) {
+
+        error.textContent =
+          'La contraseña debe tener al menos 4 caracteres';
+
+        return;
+
+      }
+
+
+      try {
+
+        const res = await fetch('/register', {
+
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json'
+          },
+
+          body: JSON.stringify({
+            usuario: usuario,
+            password: password
+          })
+
+        });
+
+
+        const datos = await res.json();
+
+
+        if (res.ok) {
+
+          alert(
+            '¡Cuenta creada con éxito! Ahora puedes iniciar sesión.'
+          );
+
+          document.getElementById(
+            'usuarioLogin'
+          ).value = usuario;
+
+          document.getElementById(
+            'passwordLogin'
+          ).value = '';
+
+          cambiarVista('login');
+
+        }
+
+        else {
+
+          error.textContent =
+            datos.mensaje ||
+            'No se pudo registrar el usuario.';
+
+        }
+
+      }
+
+      catch (e) {
+
+        console.error(e);
+
+        error.textContent =
+          'Error de conexión con el servidor';
+
+      }
+
+    }
+
+
+    // ==========================================
+    // RECUPERAR CONTRASEÑA
+    // ==========================================
+
+    function recuperarPassword() {
+
+      const dato =
+        document.getElementById('usuarioRecuperar').value.trim();
+
+      const mensaje =
+        document.getElementById('errorRecuperar');
+
+
+      if (!dato) {
+
+        mensaje.style.color = '#ff4d4d';
+
+        mensaje.textContent =
+          'Ingresa un dato válido';
+
+        return;
+
+      }
+
+
+      mensaje.style.color = '#4dff4d';
+
+      mensaje.textContent =
+        'Si el usuario existe, se han enviado instrucciones a su correo.';
+
+    }
+
+  </script>
 
 </body>
+
 </html>
