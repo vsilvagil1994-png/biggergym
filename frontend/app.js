@@ -402,18 +402,43 @@ async function verReporte() {
 // EXPORTAR EXCEL
 // ===============================
 function exportarExcel() {
-  const tabla = document.getElementById('tablaReporte');
+
+  const tabla =
+    document.getElementById('tablaReporte');
+
   if (tabla.rows.length <= 1) {
+
     alert('No hay datos para exportar');
+
     return;
   }
 
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.table_to_sheet(tabla);
-  XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
 
-  const fecha = new Date().toISOString().split('T')[0];
-  XLSX.writeFile(wb, `reporte_ingresos_${fecha}.xlsx`);
+  const ws =
+    XLSX.utils.table_to_sheet(tabla);
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    'Reporte'
+  );
+
+
+  const ahora = new Date();
+
+  const fecha =
+    ahora.getFullYear() +
+    '-' +
+    String(ahora.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(ahora.getDate()).padStart(2, '0');
+
+
+  XLSX.writeFile(
+    wb,
+    `reporte_ingresos_${fecha}.xlsx`
+  );
 }
 
 // ===============================
@@ -475,13 +500,21 @@ async function verRecordatorios() {
       }
 
       let fechaVence = '—';
-      try {
-        fechaVence = new Date(c.fecha_vencimiento)
-          .toISOString()
-          .split('T')[0];
-      } catch (e) {
-        console.error('❌ Error formateando fecha:', c.fecha_vencimiento);
-      }
+
+    try {
+
+    fechaVence = c.fecha_vencimiento
+    ? c.fecha_vencimiento.toString().substring(0, 10)
+    : '—';
+
+    } catch (e) {
+
+    console.error(
+    '❌ Error formateando fecha:',
+    c.fecha_vencimiento
+    );
+
+    }
 
       const div = document.createElement('div');
       div.style.border = '1px solid #ccc';
