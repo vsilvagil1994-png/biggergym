@@ -514,6 +514,126 @@ app.post('/login', async (req, res) => {
 });
 
 // ===============================
+// VERIFICAR USUARIO PARA RECUPERAR CONTRASEÑA
+// ===============================
+
+app.post('/verificar-usuario', async (req, res) => {
+
+  const { usuario } = req.body;
+
+  if (!usuario) {
+    return res.status(400).json({
+      ok: false,
+      mensaje: 'El usuario es obligatorio'
+    });
+  }
+
+  try {
+
+    const result = await db.query(
+      `SELECT id, usuario
+       FROM usuarios
+       WHERE usuario = $1`,
+      [usuario]
+    );
+
+
+    if (result.rows.length === 0) {
+
+      return res.status(404).json({
+        ok: false,
+        mensaje: 'El usuario no existe'
+      });
+
+    }
+
+
+    res.json({
+      ok: true,
+      mensaje: 'Usuario encontrado'
+    });
+
+
+  } catch (error) {
+
+    console.error(
+      'Error verificando usuario:',
+      error
+    );
+
+    res.status(500).json({
+      ok: false,
+      mensaje: 'Error del servidor'
+    });
+
+  }
+
+});
+
+
+// ===============================
+// CAMBIAR CONTRASEÑA
+// ===============================
+
+app.put('/cambiar-password', async (req, res) => {
+
+  const { usuario, password } = req.body;
+
+
+  if (!usuario || !password) {
+
+    return res.status(400).json({
+      ok: false,
+      mensaje: 'Usuario y contraseña son obligatorios'
+    });
+
+  }
+
+
+  try {
+
+    const result = await db.query(
+      `UPDATE usuarios
+       SET password = $1
+       WHERE usuario = $2
+       RETURNING id, usuario`,
+      [password, usuario]
+    );
+
+
+    if (result.rows.length === 0) {
+
+      return res.status(404).json({
+        ok: false,
+        mensaje: 'El usuario no existe'
+      });
+
+    }
+
+
+    res.json({
+      ok: true,
+      mensaje: 'Contraseña actualizada correctamente'
+    });
+
+
+  } catch (error) {
+
+    console.error(
+      'Error cambiando contraseña:',
+      error
+    );
+
+    res.status(500).json({
+      ok: false,
+      mensaje: 'Error al cambiar la contraseña'
+    });
+
+  }
+
+});
+
+// ===============================
 // FIN DE RUTAS
 // ===============================
 
