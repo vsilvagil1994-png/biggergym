@@ -315,8 +315,8 @@ async function verMorosos() {
       btn.classList.add('btn-small');
 
       btn.onclick = async () => {
-        const mensaje = `Hola ${c.nombre} 👋
-Te recordamos que tienes un pago pendiente del gimnasio 💪
+        const mensaje = `Hola ${c.nombre} 
+Te recordamos que tienes un pago pendiente del gimnasio 
 Por favor acércate para ponerte al día.
 ¡Gracias!`;
 
@@ -502,9 +502,9 @@ async function verRecordatorios() {
         btn.style.color = 'white';
 
         btn.onclick = async () => {
-          const mensaje = `Hola ${c.nombre} 👋
+          const mensaje = `Hola ${c.nombre} 
 Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
-¡Te esperamos! 💪`;
+¡Te esperamos! `;
 
           const telLimpio = (c.telefono || '').replace(/\D/g, '');
           const url = `https://wa.me/57${telLimpio}?text=${encodeURIComponent(mensaje)}`;
@@ -551,9 +551,9 @@ Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
 // ENVIAR WHATSAPP INDIVIDUAL
 // ===============================
 async function enviarWhatsApp(id, telefono, nombre, fechaVence) {
-  const mensaje = `Hola ${nombre} 👋
+  const mensaje = `Hola ${nombre} 
 Te recordamos que tu pago del gimnasio vence el ${fechaVence}.
-¡Te esperamos! 💪`;
+¡Te esperamos! `;
 
   const telLimpio = telefono.replace(/\D/g, '');
   const url = `https://wa.me/57${telLimpio}?text=${encodeURIComponent(mensaje)}`;
