@@ -418,17 +418,97 @@ app.get('/dashboard', async (req, res) => {
 });
 
 // ===============================
-// LOGIN SIMPLE (TEMPORAL)
+// REGISTRO DE USUARIOS
 // ===============================
-app.post('/login', (req, res) => {
+app.post('/register', async (req, res) => {
   const { usuario, password } = req.body;
 
-  if (usuario === 'Bigger' && password === 'H3125') {
-    res.json({ ok: true });
-  } else {
-    res.status(401).json({
+  if (!usuario || !password) {
+    return res.status(400).json({
+      mensaje: 'Usuario y contraseña son obligatorios'
+    });
+  }
+
+  try {
+    await db.query(
+      `INSERT INTO usuarios (usuario, password)
+       VALUES ($1, $2)`,
+      [usuario, password]
+    );
+
+    res.status(201).json({
+      ok: true,
+      mensaje: 'Usuario registrado correctamente'
+    });
+
+  } catch (error) {
+    console.error('Error al registrar usuario:', error);
+
+    if (error.code === '23505') {
+      return res.status(409).json({
+        ok: false,
+        mensaje: 'El usuario ya existe'
+      });
+    }
+
+    res.status(500).json({
       ok: false,
-      mensaje: 'Usuario o contraseña incorrectos'
+      mensaje: 'Error al registrar usuario'
+    });
+  }
+});
+
+
+// ===============================
+// LOGIN CON POSTGRESQL
+// ===============================
+app.post('/login', async (req, res) => {
+  const { usuario, password } = req.body;
+
+  if (!usuario || !password) {
+    return res.status(400).json({
+      ok: false,
+      mensaje: 'Usuario y contraseña son obligatorios'
+    });
+  }
+
+  try {
+    const result = await db.query(
+      `SELECT id, usuario, password
+       FROM usuarios
+       WHERE usuario = $1`,
+      [usuario]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        ok: false,
+        mensaje: 'Usuario o contraseña incorrectos'
+      });
+    }
+
+    const user = result.rows[0];
+
+    if (password !== user.password) {
+      return res.status(401).json({
+        ok: false,
+        mensaje: 'Usuario o contraseña incorrectos'
+      });
+    }
+
+    res.json({
+      ok: true,
+      mensaje: 'Login correcto',
+      usuario: user.usuario,
+      id: user.id
+    });
+
+  } catch (error) {
+    console.error('Error en login:', error);
+
+    res.status(500).json({
+      ok: false,
+      mensaje: 'Error del servidor'
     });
   }
 });
