@@ -297,9 +297,8 @@ app.post('/morosos/enviado', async (req, res) => {
   }
 });
 
-
 // ===============================
-// REPORTE DE INGRESOS CON FILTRO AVANZADO
+// REPORTE DE INGRESOS CON FILTRO FLEXIBLE
 // ===============================
 app.get('/reporte-ingresos', async (req, res) => {
   try {
@@ -308,26 +307,33 @@ app.get('/reporte-ingresos', async (req, res) => {
     let where = [];
     let params = [];
 
-    if (anio) {
-      params.push(anio);
-      where.push(`EXTRACT(YEAR FROM p.fecha_pago::date) = $${params.length}`);
-    }
-
-    if (mes) {
-      params.push(mes);
-      where.push(`EXTRACT(MONTH FROM p.fecha_pago::date) = $${params.length}`);
-    }
-
-    if (dia) {
+    // Si seleccionas una fecha completa en el campo "dia" (ej: 2026-09-07)
+    if (dia && (dia.includes('-') || dia.includes('/'))) {
       params.push(dia);
-      where.push(`EXTRACT(DAY FROM p.fecha_pago::date) = $${params.length}`);
+      where.push(`p.fecha_pago::date = $${params.length}::date`);
+    } else {
+      // Si usas los campos independientes por separado
+      if (anio && anio.trim() !== '') {
+        params.push(anio);
+        where.push(`EXTRACT(YEAR FROM p.fecha_pago::date) = $${params.length}`);
+      }
+
+      if (mes && mes.trim() !== '') {
+        params.push(mes);
+        where.push(`EXTRACT(MONTH FROM p.fecha_pago::date) = $${params.length}`);
+      }
+
+      if (dia && dia.trim() !== '') {
+        params.push(dia);
+        where.push(`EXTRACT(DAY FROM p.fecha_pago::date) = $${params.length}`);
+      }
     }
 
     const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
     const detalle = await db.query(`
       SELECT 
-        p.fecha_pago::date AS fecha,
+        TO_CHAR(p.fecha_pago::date, 'YYYY-MM-DD') AS fecha,
         c.nombre AS cliente,
         c.tipo,
         p.monto,

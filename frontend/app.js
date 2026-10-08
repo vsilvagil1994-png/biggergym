@@ -2,7 +2,7 @@ if (localStorage.getItem('logeado') !== 'true') {
   window.location.href = 'login.html';
 }
 
-const API = 'https://biggergym-1.onrender.com';
+const API = '';
 
 let clientesCache = [];
 let clienteEditar = null;
