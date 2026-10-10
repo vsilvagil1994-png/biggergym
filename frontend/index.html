@@ -8,11 +8,6 @@
 
 <body>
 
-<button class="btn-logout" onclick="cerrarSesion()">
-  🔒 Cerrar sesión
-</button>
-
-
 <script>
   if (!localStorage.getItem('logeado')) {
     window.location.href = '/login.html';
@@ -135,6 +130,13 @@
 <!-- ================= SCRIPTS ================= -->
 <script src="app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<!-- Cierra sesión al final de la página -->
+<div style="text-align: center; margin: 40px 0 20px 0;">
+  <button class="btn-logout-footer" onclick="cerrarSesion()">
+    🔒 Cerrar sesión
+  </button>
+</div>
 
 </body>
 </html>

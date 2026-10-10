@@ -269,23 +269,22 @@ ul li:hover {
 }
 
 /* =========================
-   BOTÓN CERRAR SESIÓN
+   BOTÓN CERRAR SESIÓN (AL FINAL)
 ========================= */
-.btn-logout {
-  position: fixed;
-  top: 15px;
-  right: 15px;
+.btn-logout-footer {
+  width: 100%;
+  max-width: 300px;
   background: #ff3b3b;
   color: #000;
   border: none;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 12px 20px;
   font-weight: bold;
+  font-size: 16px;
   cursor: pointer;
-  z-index: 999;
 }
 
-.btn-logout:hover {
+.btn-logout-footer:hover {
   background: #ff0000;
 }
 
