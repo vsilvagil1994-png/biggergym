@@ -301,14 +301,16 @@ ul li:hover {
 ========================= */
 .btn-logout-footer {
   width: 100%;
+  max-width: 400px;
   background: #ff3b3b;
   color: #000;
   border: none;
   border-radius: 8px;
-  padding: 12px 20px;
+  padding: 14px 20px;
   font-weight: bold;
   font-size: 16px;
   cursor: pointer;
+  margin: 0 auto;
 }
 
 .btn-logout-footer:hover {
