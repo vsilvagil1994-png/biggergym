@@ -269,26 +269,6 @@ ul li:hover {
 }
 
 /* =========================
-   BOTÓN CERRAR SESIÓN (AL FINAL)
-========================= */
-.btn-logout-footer {
-  width: 100%;
-  max-width: 300px;
-  background: #ff3b3b;
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 20px;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.btn-logout-footer:hover {
-  background: #ff0000;
-}
-
-/* =========================
    LISTAS CON SCROLL (RECORDATORIOS Y MOROSOS)
 ========================= */
 #listaRecordatorios,
@@ -316,4 +296,21 @@ ul li:hover {
   padding-right: 5px;
 }
 
+/* =========================
+   BOTÓN CERRAR SESIÓN (AL FINAL)
+========================= */
+.btn-logout-footer {
+  width: 100%;
+  background: #ff3b3b;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
 
+.btn-logout-footer:hover {
+  background: #ff0000;
+}
